@@ -267,7 +267,7 @@ To get an API key:
 
 ```{r include=FALSE}
 ## Set API key
-set_key("tYSrAGNj6QeCvXbYq-5EXdliE31CvqpuV4Z3doqkfM4")
+set_key("IYhQSXVZ0yDSMLW_cj1rBh40vcCMW1FkhRozQ8gd9hg")
 ```
 
 Now you're good to go. The function we are going to be using for drive-time catchments is the isoline() function from the hereR package. You supply the function with a series of points, and can then set various parameters such as whether you want the catchment to be based on distance/time (range_type) and what transport mode you want the catchment to be based on (transport_mode).
