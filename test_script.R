@@ -1,3 +1,0 @@
-## Test script
-
-library(hereR)
