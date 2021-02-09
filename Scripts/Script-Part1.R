@@ -15,38 +15,40 @@ library(hereR)
 # 1. Data (& Preprocessing) -----------------------------------------------
 
 ## Read in the Retail Centre Boundaries 
-rc <- st_read("Data/LCR_polygons.gpkg")
+rc <- st_read("Data/LCR_Retail_Centres_2018.gpkg")
+
+## Setup plotting
+tmap_mode("view")
+## Map Retail Centre Polygons for LCR
+tm_shape(rc) +
+  tm_fill(col = "orange")
 
 ## Extract centroids from the Retail Centre Boundaries
 rc_cent <- st_centroid(rc)
 
 ## Map the centroids - note: tm_dots() is used as the object rc_cent contains point data (retail centre centroids)
-tmap_mode("view")
 tm_shape(rc_cent) +
-  tm_dots()
+  tm_dots(col = "orange")
 
 
 # 2. Creating a Retail Hierarchy ------------------------------------------
 
-# Hypothetical point count (remove)
-rc_cent$n_pts <- sample(300, size = nrow(rc), replace = TRUE)
-
 ## Use mutate and case_when to create the new hierarchy column
 ## notice how ~ assigns the new values based on the condition
 rc_cent_nopipes <-  mutate(rc_cent, 
-                           hierarchy = dplyr::case_when(n_pts < 100 ~ "tertiary",
-                                                        n_pts >= 100 & n_pts < 250 ~ "secondary",
-                                                        n_pts >= 250 ~ "primary"))
+                           hierarchy = dplyr::case_when(n.units < 100 ~ "tertiary",
+                                                        n.units >= 100 & n.units < 250 ~ "secondary",
+                                                        n.units >= 250 ~ "primary"))
 
 ## Use select to extract the id, n_pts and hierarchy columns
-rc_cent_nopipes <- select(rc_cent_nopipes, id, n_pts, hierarchy)
+rc_cent_nopipes <- select(rc_cent_nopipes, rcID, n.units, n.comp.units, hierarchy)
 
 ## Use pipes to create the new hierarchy column and then select the other columns we are interested in
 rc_cent <- rc_cent %>% 
-  dplyr::mutate(hierarchy = dplyr::case_when(n_pts < 100 ~ "tertiary",
-                                             n_pts >= 100 & n_pts < 250 ~ "secondary",
-                                             n_pts >= 250 ~ "primary")) %>%
-  dplyr::select(id, n_pts, hierarchy, geom)
+  dplyr::mutate(hierarchy = dplyr::case_when(n.units < 100 ~ "tertiary",
+                                             n.units >= 100 & n.units < 250 ~ "secondary",
+                                             n.units >= 250 ~ "primary")) %>%
+  dplyr::select(rcID, n.units, n.comp.units, hierarchy, geom)
 
 
 # 3. Catchments (1) - Fixed-Ring Buffers ----------------------------------
@@ -153,7 +155,7 @@ get_primary_drive_time <- function(centroids, dist = 5, range_type = "time", tra
   ## Clean up the isoline - join on the retail centre information
   rc_primary <- rc_primary %>%
     as.data.frame() %>% 
-    select(id, n_pts, hierarchy) %>%
+    select(rcID, n.units, n.comp.units, hierarchy) %>%
     bind_cols(primary_drive_time) %>% ## Equivalent of cbind(), but for piping
     st_as_sf() ## Ensures final object is SF not dataframe
   return(rc_primary)
@@ -189,15 +191,15 @@ get_drive_time <- function(centroids, primary_dist = 20, secondary_dist = 15, te
   ## Join the retail centre info onto each set of catchments
   primary <- rc_primary %>%
     as.data.frame() %>%
-    select(id, n_pts, hierarchy) %>%
+    select(rcID, n.units, n.comp.units, hierarchy) %>%
     bind_cols(primary_drive_time)
   secondary <- rc_secondary %>%
     as.data.frame() %>%
-    select(id, n_pts, hierarchy) %>%
+    select(rcID, n.units, n.comp.units, hierarchy) %>%
     bind_cols(secondary_drive_time)
   tertiary <- rc_tertiary %>%
     as.data.frame() %>%
-    select(id, n_pts, hierarchy) %>%
+    select(rcID, n.units, n.comp.units, hierarchy) %>%
     bind_cols(tertiary_drive_time)
   
   ## Join catchments together
@@ -217,6 +219,6 @@ tm_shape(iso_hierarchy) + ## Plot the hierarchical drive-time catchments
 
 ## Filter and plot catchments of interest
 iso_hierarchy %>%
-  filter(id == "TC0225") %>%
+  filter(rcID == "RC_EW_2751") %>%
   tm_shape() + ## Notice how tm_shape can be left empty as you have piped directly from the iso_hierarchy object
   tm_fill(col = "orange", alpha = 0.5)
