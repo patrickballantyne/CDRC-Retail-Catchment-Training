@@ -8,9 +8,9 @@ The course is split into two parts:
 
 ### **Part 1**:
 
-* Understanding the 2018 Retail Centres Dataset
+* Introducing the 2018 Retail Centres Dataset
 * Constructing a Retail Centre Hierarchy
-* Building Fixed-Ring Buffer Catchments for the Retail Centres
+* Building Fixed-Ring Buffer Catchments
 * Delineating Drive-Time Catchments using the HERE API.
 
 ### **Part 2**: 
