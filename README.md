@@ -14,4 +14,6 @@ This is the GitHub repo for the CDRC 'Retail Catchments in R' Training Course. H
 ### **Part 2**
 
 
+---
 
+This practical was written by Patrick Ballantyne (P.J.Ballantyne@liverpool.ac.uk), and is  licensed under the Creative Commons Attribution-ShareAlike 4.0 International License. To view a copy of this license, visit http://creativecommons.org/licenses/by-sa/4.0/deed.en.
