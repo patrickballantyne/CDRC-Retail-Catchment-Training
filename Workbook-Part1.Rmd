@@ -168,7 +168,7 @@ tm_shape(buffer1km) + ## Plot the buffers
 
 However, it is more informative to have buffers that vary in size depending on the hierarchical position of the retail centres. In this next chunk of code I have created a small function to do this. Functions are really helpful tools that enable you to apply a series of methods in sequence and return the output. This is particularly helpful when you need to repeat steps over and over again, as it removes the need for typing out the same lines of code multiple times. For those new to functions, watch the short video below:
 
-!(Images/Intro-to-Functions.mp4)
+**Insert Video Here**
 
 The function i have created delineates a 1000m catchment for Retail Centres classed as primary. It has three steps:
 
