@@ -6,8 +6,14 @@ This is the GitHub repo for the CDRC 'Retail Catchments in R' Training Course. H
 
 The course is split into two parts:
 
-* Part 1: Understanding the 2018 Retail Centres Dataset, Constructing a Retail Centre Hierarchy, Building Fixed-Ring Buffer Catchments for the Retail Centres and Delineating Drive-Time Catchments using the HERE API.
-* Part 2: 
+### **Part 1**:
+
+* Understanding the 2018 Retail Centres Dataset
+* Constructing a Retail Centre Hierarchy
+* Building Fixed-Ring Buffer Catchments for the Retail Centres
+* Delineating Drive-Time Catchments using the HERE API.
+
+### **Part 2**: 
 
 
 
