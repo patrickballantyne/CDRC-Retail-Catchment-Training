@@ -1,4 +1,4 @@
-# CDRC-Retail-Catchment-Training
+# CDRC 'Retail Catchments in R' Training Course (2021)
 
 ## Welcome
 
