@@ -1,6 +1,5 @@
 ---
-title: "CDRC Retail Catchment Training"
-author: "Patrick Ballantyne - Geographic Data Science Lab"
+title: "CDRC 'Retail Catchments in R' Training Course"
 date: "February 2021"
 output: html_document
 ---
@@ -168,7 +167,7 @@ tm_shape(buffer1km) + ## Plot the buffers
 
 However, it is more informative to have buffers that vary in size depending on the hierarchical position of the retail centres. In this next chunk of code I have created a small function to do this. Functions are really helpful tools that enable you to apply a series of methods in sequence and return the output. This is particularly helpful when you need to repeat steps over and over again, as it removes the need for typing out the same lines of code multiple times. For those new to functions, watch the short video below:
 
-**Insert Video Here**
+*Add Video Here*
 
 The function i have created delineates a 1000m catchment for Retail Centres classed as primary. It has three steps:
 
@@ -281,7 +280,7 @@ To get an API key:
 
 ```{r include=FALSE}
 ## Set API key
-set_key("IOcatVvT-9KjI_HxIDo2VpKaOCaEmhY2A_2ZMykvdpQ")
+set_key("zvDs21xglfTzzb-IFs1zOnOm0_ObKIMF3cOOrNqijnU")
 ```
 
 Now you're good to go. The function we are going to be using for drive-time catchments is the isoline() function from the hereR package. You supply the function with a series of points, and can then set various parameters such as whether you want the catchment to be based on distance/time (range_type) and what transport mode you want the catchment to be based on (transport_mode).
@@ -445,6 +444,15 @@ iso_hierarchy %>%
   filter(rcID == "RC_EW_2751") %>%
   tm_shape() + ## Notice how tm_shape can be left empty as you have piped directly from the iso_hierarchy object
   tm_fill(col = "orange", alpha = 0.5)
+```
+
+## Writing Out Your Files
+
+At this point we need to write out the Retail Centre centroids as they contain the 'Hierarchy' column and we will need this for Part 2 of this course. 
+
+
+```{r}
+#st_write(rc_cent, "Data/Part2_Retail_Centres.gpkg")
 ```
 
 
