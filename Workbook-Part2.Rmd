@@ -1,0 +1,133 @@
+---
+title: "CDRC 'Retail Catchments in R'  (Part 2)"
+date: "February 2021"
+output: html_document
+---
+
+```{r include=FALSE}
+knitr::opts_chunk$set(warning = FALSE, message = FALSE)
+```
+
+## Welcome Back!
+
+This is part 2 of the 2 part course from CDRC on using the UK retail centres dataset to create retail catchments. Theis practical session shows you how to estimate retail catchments using a gravity or spatial interaction model (SIM), more specifically a probabilistic SIM called the Huff model. Make sure you have completed Part 1 of this Training Course before beginning this section.
+
+After completing this material, you will:
+
+* Understand what a Huff model its basic components
+* Know how to build a Huff model for Retail Centres in the Liverpool City Region 
+* Know how to delineate catchments for each Retail Centre using the Huff model
+
+## Setup
+
+First we want to set up the libraries that we are going to be using for this practical - you should have these installed from the previous practical:
+
+```{r }
+library(sf)
+library(dplyr)
+library(tmap)
+tmap_mode("plot")
+```
+
+We also need some additional packages for computation of the Huff Model, so go ahead and install the following packages if you don't have them already:
+
+```{r}
+# install.packages("rgdal")
+library(rgdal)
+library(rgeos)
+library(igraph)
+library(FNN)
+```
+
+Make sure you have set your working directory to wherever you have stored the CDRC-Retail-Catchment-Training folder we have provided:
+
+```{r}
+#setwd("CDRC-Retail-Catchment-Training")
+```
+
+Finally, we need to download some functions that we need for the Huff model. The functions needed have been packaged in a .R file called huff-tools.R, which you can find in the 'Scripts' folder provided for this course. The file contains 9 functions, two of which we will be using in this practical. To read the file and save the functions to your environment, run the following line of code:
+
+```{r}
+## Save huff-tools.R functions to memory
+source("Scripts/huff-tools.R")
+```
+
+## Data (& Preprocessing)
+
+Again, we are going to be working with the Liverpool City Region Retail Centres dataset. Specifically we are going to work with the set of Retail Centres we created the hierarchy for in the last practical. So go ahead and read those back into your environment:
+
+```{r}
+## Read in the LCR Retail Centres (with Hierarchy from Part 1)
+rc <- st_read("Data/Part2_Retail_Centres.gpkg")
+```
+
+We will also be needing an emtpy set of LSOA's (Lower Super Output Areas) for the Liverpool City Region, which you can also find in the 'Data' folder, so go ahead and read these in:
+
+```{r}
+## Read in the Liverpool City Region LSOAs
+lsoa <- st_read("Data/LCR_LSOA.gpkg")
+```
+
+For those unfamiliar to LSOA's, a quick plot will show you roughly what they look like:
+
+```{r}
+## Plot the LSOAs for Liverpool City Region 
+tm_shape(lsoa) +
+  tm_fill() +
+  tm_borders(col = "black", lwd = 0.5)
+```
+
+The final dataset we need for this practical is a file called 'Distances.csv', which you can also find in the 'Data' folder. The data is non-spatial (.csv) so we can just use the read.csv() function to read into memory
+
+```{r}
+## Read in Distances.csv
+distances <- read.csv("Data/Distances.csv")
+```
+
+Let's take a look at distances:
+
+```{r}
+## Use head() to print the first few rows of any data frame or tabular dataset
+head(distances)
+```
+
+So the data contains three columns:
+
+* rcID - Retail Centre ID's (we saw these in Part 1)
+* lsoa11cd - LSOA Codes
+* distance - distances (in metres) from each retail centre to each LSOA in Liverpool City Region
+
+Notice how the first few rows have the same rcID value, as each row contains a distance to a different LSOA.
+
+The final step we want to take is to join these distances to the retail centre data (rc) we have in our environment. I am going to use pipes in the next step to perform an inner join between the retail centre data (rc) and the object containing the rc-LSOA distances (distances). An inner_join keeps all the rows of both objects, looking for a unique column to join on between the two. In this instance, the inner_join will be performed using the rcID column as both rc and distances have that column in common. Following this, you will notice i am converting the data to a data frame and selecting only the columns I am interested in keeping:
+
+```{r}
+## Joing rc and distances together, and then tidy up the object (data.frame, selecting columns)
+huff_input <- rc %>%
+  inner_join(distances) %>%
+  as.data.frame() %>%
+  select(rcID, n.units, hierarchy, lsoa11cd, distance)
+```
+
+Let's inspect the data;
+
+```{r}
+## use head() to print the first few rows of any data frame or tabular dataset
+head(huff_input)
+```
+
+So the dataset contains:
+
+* rcID - Retail Centre ID's
+* n.units - a count of the number of units in each retail centre (we saw this last time)
+* hierarchy - a hierarchical value for each retail centre (primary, secondary, tertiary) based on the number of units in each centre, that we calculated last time
+* lsoa11cd - LSOA Codes
+* distance - distances (in metres) from each retail centre to each LSOA in Liverpool City Region
+
+Ok, you're all set!
+
+## Running the Huff Model
+
+## Mapping the Output
+
+## Extracting Huff Catchments 

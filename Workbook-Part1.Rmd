@@ -1,5 +1,5 @@
 ---
-title: "CDRC 'Retail Catchments in R' Training Course"
+title: "CDRC 'Retail Catchments in R' Training Course (Part 1)"
 date: "February 2021"
 output: html_document
 ---
