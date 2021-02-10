@@ -13,6 +13,9 @@ This is the GitHub repo for the CDRC 'Retail Catchments in R' Training Course. H
 
 ### **Part 2**
 
+* Understanding what a Huff model is and its basic components
+* Building a Huff model for Retail Centres in the Liverpool City Region 
+* Delineate catchments for each Retail Centre using the Huff model
 
 ---
 
