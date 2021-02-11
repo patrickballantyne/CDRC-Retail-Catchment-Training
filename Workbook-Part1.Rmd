@@ -39,7 +39,7 @@ Make sure you have set your working directory to wherever you have stored the CD
 
 ## 1. Data (& Preprocessing)
 
-The first dataset we are going to be using is a geopackage containing the updated retail centre boundaries for the UK, which is within your data packs for this practical. We have given you a subset for the Liverpool City Region (LCR), containing the 65 retail centre polygons within the LCR.
+The first dataset we are going to be using is a geopackage containing the updated retail centre boundaries for the UK, which is within your data packs for this practical. We have given you a subset for the Liverpool City Region (LCR), containing the top 20 retail centres within the LCR.
 
 All datasets you need for this practical are contained within the 'Data' subfolder within the CDRC-Retail-Catchment-Training folder we provided.
 
@@ -280,7 +280,7 @@ To get an API key:
 
 ```{r include=FALSE}
 ## Set API key
-set_key("zvDs21xglfTzzb-IFs1zOnOm0_ObKIMF3cOOrNqijnU")
+set_key("vo8bBvk8XxTChhIUhqXAz9Pd-CBS_rDwJJrk6a7fWzg")
 ```
 
 Now you're good to go. The function we are going to be using for drive-time catchments is the isoline() function from the hereR package. You supply the function with a series of points, and can then set various parameters such as whether you want the catchment to be based on distance/time (range_type) and what transport mode you want the catchment to be based on (transport_mode).
