@@ -110,7 +110,7 @@ The final step we want to take is to join these distances to the retail centre d
 huff_input <- rc %>%
   inner_join(distances) %>%
   as.data.frame() %>%
-  select(rcID, n.units, hierarchy, lsoa11cd, distance)
+  select(rcID, rcName,n.comp.units, hierarchy, lsoa11cd, distance)
 ```
 
 Note: if you would rather not use pipes, you can deconstruct the above code as below and obtain the same output:
@@ -119,7 +119,7 @@ Note: if you would rather not use pipes, you can deconstruct the above code as b
 ## Joing rc and distances together, and then tidy up the object (data.frame, selecting columns) NO PIPES
 # huff_input <- inner_join(rc, distances)
 # huff_input <- as.data.frame(huff_input)
-# huff_input <- select(huff_input, rcID, n.units, hierarchy, lsoa11cd, distance)
+# huff_input <- select(huff_input, rcID, rcName, n.comp.units, hierarchy, lsoa11cd, distance)
 ```
 
 Now that we have joined the Retail Centre data and distances together, let's inspect the output:
@@ -132,7 +132,8 @@ head(huff_input)
 So the dataset contains:
 
 * rcID - Retail Centre ID's
-* n.units - a count of the number of units in each retail centre (we saw this in Part 1)
+* rcName - Retail Centre Names
+* n.comp.units - a count of the number of comparison retail units in each retail centre (we saw this in Part 1)
 * hierarchy - a hierarchical value for each retail centre (primary, secondary, tertiary) based on the number of units in each centre (we calculated this in Part 1)
 * lsoa11cd - LSOA Codes
 * distance - distances (in metres) from each Retail Centre to each LSOA in Liverpool City Region
@@ -161,7 +162,7 @@ But we do not have:
 
 ### 2a. Attractiveness Scores
 
-In this practical we will use *INSERT SOLUTION* as an alternative to attractiveness scores.
+In this practical we will use the total number of comparison units as the measure of attractiveness. This is not ideal as usually this would be a pre-computed value based on a number of other parameters, however for the purposes of defining attractiveness, the total number of comparison retailers is arguably an appropriate substitute.
 
 ### 2b. Beta Exponent
 
@@ -219,23 +220,25 @@ Let's take a look at our dataset, to make sure we have all the necessary inputs 
 head(huff_input)
 ```
 
-It's all there, so we are ready to fit the model. I have included the arguments (e.g. destinations_name) and the columns we are using for each (e.g. rcID) to show you what columns you need to put in which part of the model. But just to remind you:
+It's all there, so we are ready to fit the model. I have included the arguments (e.g. destinations_name) and the columns we are using for each (e.g. rcName) to show you what columns you need to put in which part of the model. But just to remind you:
 
-* A list of unique names for the destination locations - Retail Centre ID's (rcID)
-* A list of attractiveness score for the destination locations - Attractiveness Indicator for Retail Centres (n.pts)
+* A list of unique names for the destination locations - Retail Centre Names (rcName)
+* A list of attractiveness score for the destination locations - Attractiveness Indicator for Retail Centres (n.comp.units)
 * A list of unique names for the origin locations - LSOA Codes (lsoa11cd)
 * A list of pairwise distances between origins and destinations - distance
-* A list or scalar for the beta exponent of distance [optional] - beta values calculated above
-* A list or scalar for the alpha exponent of the attractiveness score [optional] - alpha values set above
+
+We also have two additional parameters (alpha, beta). The default values for these are 1 & 2 respectively, but we have also set beta values as above that differ depending on the hierarchy. Firstly, let's implement a huff model with the default parameters:
+
+### 3a. Huff Model (Default Parameters)
 
 ```{r}
-## Fit the huff model
-huff_probs <- huff_basic(destinations_name = huff_input$rcID,
-                         destinations_attractiveness = huff_input$n.units,
+## Fit the huff model, setting alpha to 1 and beta to 2 - these are the default parameters
+huff_probs <- huff_basic(destinations_name = huff_input$rcName,
+                         destinations_attractiveness = huff_input$n.comp.units,
                          origins_name = huff_input$lsoa11cd,
                          distance = huff_input$distance,
-                         alpha = huff_input$alpha,
-                         beta = huff_input$beta)
+                         alpha = 1,
+                         beta = 2)
 ```
 
 That's it - you've successfully run the Huff Model, let's take a look at the output:
@@ -261,65 +264,126 @@ Let's take a look:
 head(top_probs)
 ```
 
-So, the top_probs object contains the highest huff probabilities for each LSOA, sorted (in descending order) by huff probability. Notice how each huff probability also corresponds to a 'destinations_name' or Retail Centre - we can therefore interpret this probability to be the probability someone from that LSOA (e.g. E01033094) will patronise that Retail Centre (e.g. RC_EW_2848).
+So, the top_probs object contains the highest huff probabilities for each LSOA, sorted (in descending order) by huff probability. Notice how each huff probability also corresponds to a 'destinations_name' or Retail Centre - we can therefore interpret this probability to be the probability someone from that LSOA (e.g. E01007198) will patronise that Retail Centre (e.g. West Kirby).
+
+### 3b. Huff Model (specification of *alpha* and *beta*)
+
+Remember in section 2b we specified some beta values for different types of retail centres:
+
+* 1.8 for Primary centres
+* 1.9 for Secondary centres
+* 2.0 for Tertiary centres
+
+So this time instead of using the default values (alpha = 1, beta = 2), we will use the beta values we assigned earlier - this involves changing the beta argument below:
+
+```{r}
+## Fit the huff model, setting alpha to 1 and beta the the beta column, containing the values we set earlier
+hierarchy_huff_probs <- huff_basic(destinations_name = huff_input$rcName,
+                         destinations_attractiveness = huff_input$n.comp.units,
+                         origins_name = huff_input$lsoa11cd,
+                         distance = huff_input$distance,
+                         alpha = 1,
+                         beta = huff_input$beta)
+
+## Extract the highest huff probability in each LSOA
+hierarchy_top_probs <- select_by_probs(hierarchy_huff_probs, 1)
+```
+
+Inspect the output:
+
+```{r}
+# head() displays the first few rows of a data frame or tabular object
+head(hierarchy_top_probs)
+```
 
 ## 4. Mapping the Output
 
-Now that we have our huff model results, we can convert these to a spatial format. First, let's tidy up the top_probs object by changing some of the column names and dropping the distance column:
+Now that we have our results for the two huff models, we can convert these to a spatial format. First, let's tidy up the top_probs object by changing some of the column names and dropping the distance column:
 
 ```{r}
 ## Tidy up top_probs PIPED
 top_probs <-top_probs %>%
-  rename(lsoa11cd = origins_name, rcID = destinations_name) %>%
-  select(lsoa11cd, rcID, huff_probability)
+  rename(lsoa11cd = origins_name, rcName = destinations_name) %>%
+  select(lsoa11cd, rcName, huff_probability)
 ```
 
 Or without pipes:
 
 ```{r}
 ## Tidy up top_probs NO PIPES
-# top_probs <- rename(top_probs, lsoa11cd = origins_name, rcID = destinations_name)
-# top_probs <- select(top_probs, lsoa11cd, rcID, huff_probability)
+# top_probs <- rename(top_probs, lsoa11cd = origins_name, rcName = destinations_name)
+# top_probs <- select(top_probs, lsoa11cd, rcName, huff_probability)
 ```
 
-Now we are ready to convert it to a spatial format, we are going to do this by joinin the top_probs object onto the empty 'lsoa' sf we read in at the start of the practical. The 'lsoa' object contains a column with the LSOA codes (lsoa11cd), and so does the top_probs object, and they both have 989 rows, so we can perform a simple merge to join the two together:
+And the same for the Huff model accounting for hierarchy (Piped and Non-Piped approaches):
 
 ```{r}
-## Merge the huff probabilities onto the lsoa shapefile
+## Tidy up the output of the huff model using different beta values for hierarchy PIPED
+hierarchy_top_probs <-hierarchy_top_probs %>%
+  rename(lsoa11cd = origins_name, rcName = destinations_name) %>%
+  select(lsoa11cd, rcName, huff_probability)
+
+## Tidy up hierarchy_top_probs NO PIPES
+# top_probs <- rename(top_probs, lsoa11cd = origins_name, rcName = destinations_name)
+# top_probs <- select(top_probs, lsoa11cd, rcName, huff_probability)
+```
+
+Now we are ready to convert it to a spatial format, we are going to do this by joinin the top_probs/hierarchy_top_probs objects onto the empty 'lsoa' sf we read in at the start of the practical. The 'lsoa' object contains a column with the LSOA codes (lsoa11cd), and so do the top_probs/hierarchy_top_probs objects, and they both have 989 rows, so we can perform a simple merge to join the two together:
+
+```{r}
+## Merge the results of the huff model with default parameters onto the LSOAs
 lcr_huff <- merge(lsoa, top_probs, by = "lsoa11cd")
+
+## Merge on the results of thehuff model accounting for hierarchy with beta values onto the LSOAs
+lcr_hierarchy_huff <- merge(lsoa, hierarchy_top_probs, by = "lsoa11cd")
 ```
 
-Now we have an sf object of LSOAs for Liverpool City Region, containing the huff probabilities to the Retail Centre most likely patronised from each LSOA. Let's take a look:
+Now we have two sf objects of LSOAs for Liverpool City Region, containing the huff probabilities to the Retail Centre most likely patronised from each LSOA, the first based on a model using default parameters and the second using differing beta values to account for hierarchy. Let's take a look:
 
 ```{r}
-## head displays the first few rows of any data frame or tabular object
+## Huff probabilities (default parameters)
 head(lcr_huff)
 ```
 
-We can map the output, using the rcID column in the tm_fill() argument to show us which LSOAs have been allocated to which retail centres:
+```{r}
+## Huff probabilities (beta values set to reflect hierarchy)
+head(lcr_hierarchy_huff)
+```
+
+We can map the output, using the rcName column in the tm_fill() argument to show us which LSOAs have been allocated to which retail centres - first lets do it for the Huff model using default parameters.
 
 ```{r}
 ## Map the allocation of LSOAs to retail centres - notice the additional arguments in tm_layout() to move the legend outside the map frame, and tm_borders() to show LSOA boundaries clearly
 tm_shape(lcr_huff) +
-  tm_fill(col = "rcID", alpha = 0.4) +
+  tm_fill(col = "rcName", alpha = 0.4) +
+  tm_borders(col = "black", lwd = 0.25, alpha = 0.2) +
+  tm_layout(legend.outside = TRUE, legend.outside.position = "right")
+```
+
+And now for the Huff model using different beta values for the hierarchies:
+
+```{r}
+## Map the allocation of LSOAs to retail centres - notice the additional arguments in tm_layout() to move the legend outside the map frame, and tm_borders() to show LSOA boundaries clearly
+tm_shape(lcr_hierarchy_huff) +
+  tm_fill(col = "rcName", alpha = 0.4) +
   tm_borders(col = "black", lwd = 0.25, alpha = 0.2) +
   tm_layout(legend.outside = TRUE, legend.outside.position = "right")
 ```
 
 ## 5. Extracting Huff Catchments 
 
-The final part of this practical is using the huff probabilities and allocation of LSOAs to the Retail Centres to generate Huff catchments for each Retail Centre. We can extract the LSOAs for one Retail Centre easily using the filter function:
+The final part of this practical is using the huff probabilities and allocation of LSOAs to the Retail Centres to generate Huff catchments for each Retail Centre. We can extract the LSOAs for one Retail Centre easily using the filter function. We are now just going to work with the results of the Huff model that used beta values to account for hierarchy (lcr_hierarchy_huff), but feel free to run through this next section with the default huff model to see the differences.
 
 ```{r}
 ## Extract LSOAs and catchment for the St Helens Retail Centre
-sthelens <- filter(lcr_huff, rcID == "RC_EW_3102")
+sthelens <- filter(lcr_hierarchy_huff, rcName == "St Helens")
 ```
 
 And extract the corresponding Retail Centre (centroid) too:
 
 ```{r}
 ## Extract the St Helen's Retail Centre Centroid
-sthelens_rc <- filter(rc, rcID == "RC_EW_3102")
+sthelens_rc <- filter(rc, rcName == "St Helens")
 ```
 
 Now we can map these LSOAs (tm_fill) and the St Helens Retail Centre Centroid (tm_dots):
@@ -330,7 +394,7 @@ tm_shape(sthelens) +
   tm_fill(col = "orange", alpha = 0.5) +
   tm_borders(col = "black", lwd = 0.25, alpha = 0.2) +
   tm_shape(sthelens_rc) +
-  tm_dots(size = 0.25, col = "red")
+  tm_dots(size = 0.1, col = "red")
 ```
 
 But what if we wanted to extract the catchments for each Retail Centre? This can be easily done in R - the operation in a standard GIS software would be a 'dissolve' where you specify the Retail Centre ID's and it would return a dissolved set of LSOAs for each unique value in the Retail Centre ID column.
@@ -341,8 +405,8 @@ Let's implement this below:
 
 ```{r}
 ## Extract Huff catchments for each Retail Centre
-catchments <- lcr_huff %>%
-  group_by(rcID) %>%
+catchments <- lcr_hierarchy_huff %>%
+  group_by(rcName) %>%
   summarise(n.lsoa = n())
 ```
 
@@ -358,7 +422,7 @@ So we have one row for each retail centre, with a dissolved set of LSOA polygons
 ```{r}
 ## Map the Huff Catchments for the Retail Centres
 tm_shape(catchments) +
-  tm_fill(col = "rcID", alpha = 0.4) +
+  tm_fill(col = "rcName", alpha = 0.4) +
   tm_borders(col = "black", lwd = 0.25, alpha = 0.2)
 ```
 
