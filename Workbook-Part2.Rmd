@@ -1,5 +1,5 @@
 ---
-title: "CDRC 'Retail Catchments in R'  (Part 2)"
+title: "CDRC 'Retail Catchments in R' (Part 2)"
 date: "February 2021"
 output: html_document
 ---
@@ -10,11 +10,11 @@ knitr::opts_chunk$set(warning = FALSE, message = FALSE)
 
 ## Welcome Back!
 
-This is part 2 of the 2 part course from CDRC on using the UK retail centres dataset to create retail catchments. Theis practical session shows you how to estimate retail catchments using a gravity or spatial interaction model (SIM), more specifically a probabilistic SIM called the Huff model. Make sure you have completed Part 1 of this Training Course before beginning this section.
+This is part 2 of the 2 part course from CDRC on using the UK Retail Centres dataset to create retail catchments. This practical session shows you how to estimate retail catchments using a gravity or spatial interaction model (SIM), more specifically a probabilistic SIM called the Huff model. Make sure you have completed Part 1 of this Training Course before beginning this section.
 
 After completing this material, you will:
 
-* Understand what a Huff model its basic components
+* Understand what a Huff model is, and what its basic components are
 * Know how to build a Huff model for Retail Centres in the Liverpool City Region 
 * Know how to delineate catchments for each Retail Centre using the Huff model
 
@@ -52,7 +52,7 @@ Finally, we need to download some functions that we need for the Huff model. The
 source("Scripts/huff-tools.R")
 ```
 
-You will notice you now have 9 new functions in your environment - the primary ones we will be using are huff_basic() and select_by_probs().
+You will notice you now have 9 new functions in your environment - the primary ones we will be using are huff_basic() and select_by_probs(). For more information on these functions visit the [huff-tools.R vignette](https://github.com/mpavlis/huff-tools/blob/master/huff-tools%20vignette.pdf).
 
 ## 1. Data (& Preprocessing)
 
@@ -99,11 +99,11 @@ So the data contains three columns:
 
 * rcID - Retail Centre ID's (we saw these in Part 1).
 * lsoa11cd - LSOA Codes; a unique code for each LSOA in the Liverpool City Region.
-* distance - distances (in metres) from each retail centre to each LSOA (centroid) in Liverpool City Region.
+* distance - distances (in metres) from each Retail Centre to each LSOA (centroid) in Liverpool City Region.
 
 Notice how the first few rows have the same rcID value, as each row contains a distance to a different LSOA. These distances have been precomputed for you and packaged in the 'Distances.csv' file, however if you are interested in how to calculate your own set of point to point distances, please visit the documentation for the route_matrix() function from the 'hereR' package (https://www.rdocumentation.org/packages/hereR/versions/0.3.0/topics/route_matrix). 
 
-The final step we want to take is to join these distances to the retail centre data (rc) we have in our environment. I am going to use pipes in the next step to perform an inner join between the retail centre data (rc) and the object containing the rc-LSOA distances (distances). An inner_join keeps all the rows of both objects, looking for a unique column to join on between the two. In this instance, the inner_join will be performed using the rcID column as both rc and distances have that column in common. Following this, you will notice i am converting the data to a data frame and selecting only the columns I am interested in keeping:
+The final step we want to take is to join these distances to the Retail Centre data (rc) we have in our environment. I am going to use pipes in the next step to perform an inner join between the Retail Centre data (rc) and the object containing the rc-LSOA distances (distances). An inner_join keeps all the rows of both objects, looking for a unique column to join on between the two. In this instance, the inner_join will be performed using the rcID column as both rc and distances have that column in common. Following this, you will notice i am converting the data to a data frame and selecting only the columns I am interested in keeping:
 
 ```{r}
 ## Joing rc and distances together, and then tidy up the object (data.frame, selecting columns)
@@ -133,14 +133,16 @@ So the dataset contains:
 
 * rcID - Retail Centre ID's
 * rcName - Retail Centre Names
-* n.comp.units - a count of the number of comparison retail units in each retail centre (we saw this in Part 1)
-* hierarchy - a hierarchical value for each retail centre (primary, secondary, tertiary) based on the number of units in each centre (we calculated this in Part 1)
+* n.comp.units - a count of the number of comparison retail units in each Retail Centre (we saw this in Part 1)
+* hierarchy - a hierarchical value for each Retail Centre (primary, secondary, tertiary) based on the number of units in each centre (we calculated this in Part 1)
 * lsoa11cd - LSOA Codes
 * distance - distances (in metres) from each Retail Centre to each LSOA in Liverpool City Region
 
 Ok, you're all set!
 
 ## 2. Setting up the Huff Model
+
+The Huff model was first proposed in 1964 by Huff, and is calibrated using three main variables - distance, attractiveness and competition- and is one of the underpinning theoretical models in Retail Geography. The Huff model was used in a paper by [Dolega et al. (2016)](https://www.sciencedirect.com/science/article/pii/S0969698915300412) to delineate catchments for a set of retail centres for the UK, and the approach we use in this next section uses the same set of tools the authors used in that paper.
 
 For the Huff model to run (using the huff_basic function), we need as input:
 
@@ -151,11 +153,11 @@ For the Huff model to run (using the huff_basic function), we need as input:
 * A list or scalar for the beta exponent of distance [optional].
 * A list or scalar for the alpha exponent of the attractiveness score [optional].
 
-We have the names for destination locations (retail centre ID's) and the names for the origin locations (lsoa11cd), aswell as the pairwise distances between the origins and destinations.
+We have the names for destination locations (Retail Centre ID's) and the names for the origin locations (lsoa11cd), aswell as the pairwise distances between the origins and destinations.
 
 But we do not have:
 
-* Attractiveness scores for the destination locations (retail centres)
+* Attractiveness scores for the destination locations (Retail Centres)
 * Beta exponent for distance
 * Alpha exponent for attractiveness
 
@@ -168,13 +170,13 @@ In this practical we will use the total number of comparison units as the measur
 
 The Beta parameter (or distance decay exponent) is a vital component of the Huff model. It is used to account for the tendency for Retail Centres at the top of the hierarchy ('primary' centres) having a lower distance decay - i.e. their attractiveness is still reduced with distance, but at a much slower rate than the smaller centres ('secondary' and 'tertiary').
 
-Thus, we need to assign a Beta parameter for each of the retail centres, which depends on the hierarchical position of that retail centre. Again, I am going to use the mutate() and case_when() functions to do so (as in Part 1). We are going to use the following values:
+Thus, we need to assign a Beta parameter for each of the Retail Centres, which depends on the hierarchical position of that Retail Centre. Again, I am going to use the mutate() and case_when() functions to do so (as in Part 1). We are going to use the following values:
 
 * Primary Centres - 1.8
 * Secondary Centres - 1.9
 * Tertiary Centres - 2.0
 
-So, run this next line of code to create a new column in your dataset called 'beta' which houses the beta parameters for the retail centres:
+So, run this next line of code to create a new column in your dataset called 'beta' which houses the beta parameters for the Retail Centres:
 
 ```{r}
 ## Create beta parameters, using mutate() and case_when()
@@ -207,7 +209,7 @@ It should be noted that the beta values can be altered, depending on the require
 In this practical we are going to use the default alpha value of 1, to control the alpha exponent of the attractiveness score. So go ahead and set this:
 
 ```{r}
-## Create column called alpha, where the value = 1 for each retail centre
+## Create column called alpha, where the value = 1 for each Retail Centre
 huff_input$alpha <- 1
 ```
 
@@ -248,9 +250,9 @@ That's it - you've successfully run the Huff Model, let's take a look at the out
 head(huff_probs)
 ```
 
-Ok, so we have lots of original information (origins_name, destinations_name and distance), but also some new columns. The column we are interested in is the huff_probability column, which contains probabilities between each retail centre and every LSOA in the dataset. 
+Ok, so we have lots of original information (origins_name, destinations_name and distance), but also some new columns. The column we are interested in is the huff_probability column, which contains probabilities between each Retail Centre and every LSOA in the dataset. 
 
-For every LSOA, we want to extract the highest huff probability which will correspond to one retail centre, allocating that LSOA to the retail centre's catchment. To do this, we use the select_by_probs() function in your environment from the 'huff-tools.R' file. The function takes as input the output of the huff model, and a value (x) that selects the top x amount of huff probabilities for each LSOA. In this case we are just going to set this to one, to extract the top huff probability for each LSOA.
+For every LSOA, we want to extract the highest huff probability which will correspond to one Retail Centre, allocating that LSOA to the Retail Centre's catchment. To do this, we use the select_by_probs() function in your environment from the 'huff-tools.R' file. The function takes as input the output of the huff model, and a value (x) that selects the top x amount of huff probabilities for each LSOA. In this case we are just going to set this to one, to extract the top huff probability for each LSOA.
 
 ```{r}
 ## Extract the highest huff probability in each LSOA
@@ -268,7 +270,7 @@ So, the top_probs object contains the highest huff probabilities for each LSOA, 
 
 ### 3b. Huff Model (specification of *alpha* and *beta*)
 
-Remember in section 2b we specified some beta values for different types of retail centres:
+Remember in section 2b we specified some beta values for different types of Retail Centres:
 
 * 1.8 for Primary centres
 * 1.9 for Secondary centres
@@ -328,7 +330,7 @@ hierarchy_top_probs <-hierarchy_top_probs %>%
 # top_probs <- select(top_probs, lsoa11cd, rcName, huff_probability)
 ```
 
-Now we are ready to convert it to a spatial format, we are going to do this by joinin the top_probs/hierarchy_top_probs objects onto the empty 'lsoa' sf we read in at the start of the practical. The 'lsoa' object contains a column with the LSOA codes (lsoa11cd), and so do the top_probs/hierarchy_top_probs objects, and they both have 989 rows, so we can perform a simple merge to join the two together:
+Now we are ready to convert it to a spatial format, we are going to do this by joining the top_probs/hierarchy_top_probs objects onto the empty 'lsoa' sf we read in at the start of the practical. The 'lsoa' object contains a column with the LSOA codes (lsoa11cd), and so do the top_probs/hierarchy_top_probs objects, and they both have 989 rows, so we can perform a simple merge to join the two together:
 
 ```{r}
 ## Merge the results of the huff model with default parameters onto the LSOAs
@@ -350,10 +352,10 @@ head(lcr_huff)
 head(lcr_hierarchy_huff)
 ```
 
-We can map the output, using the rcName column in the tm_fill() argument to show us which LSOAs have been allocated to which retail centres - first lets do it for the Huff model using default parameters.
+We can map the output, using the rcName column in the tm_fill() argument to show us which LSOAs have been allocated to which Retail Centres - first lets do it for the Huff model using default parameters.
 
 ```{r}
-## Map the allocation of LSOAs to retail centres - notice the additional arguments in tm_layout() to move the legend outside the map frame, and tm_borders() to show LSOA boundaries clearly
+## Map the allocation of LSOAs to Retail Centres - notice the additional arguments in tm_layout() to move the legend outside the map frame, and tm_borders() to show LSOA boundaries clearly
 tm_shape(lcr_huff) +
   tm_fill(col = "rcName", alpha = 0.4) +
   tm_borders(col = "black", lwd = 0.25, alpha = 0.2) +
@@ -363,7 +365,7 @@ tm_shape(lcr_huff) +
 And now for the Huff model using different beta values for the hierarchies:
 
 ```{r}
-## Map the allocation of LSOAs to retail centres - notice the additional arguments in tm_layout() to move the legend outside the map frame, and tm_borders() to show LSOA boundaries clearly
+## Map the allocation of LSOAs to Retail Centres - notice the additional arguments in tm_layout() to move the legend outside the map frame, and tm_borders() to show LSOA boundaries clearly
 tm_shape(lcr_hierarchy_huff) +
   tm_fill(col = "rcName", alpha = 0.4) +
   tm_borders(col = "black", lwd = 0.25, alpha = 0.2) +
@@ -372,7 +374,9 @@ tm_shape(lcr_hierarchy_huff) +
 
 ## 5. Extracting Huff Catchments 
 
-The final part of this practical is using the huff probabilities and allocation of LSOAs to the Retail Centres to generate Huff catchments for each Retail Centre. We can extract the LSOAs for one Retail Centre easily using the filter function. We are now just going to work with the results of the Huff model that used beta values to account for hierarchy (lcr_hierarchy_huff), but feel free to run through this next section with the default huff model to see the differences.
+The final part of this practical is using the huff probabilities and allocation of LSOAs to the Retail Centres to generate Huff catchments for each Retail Centre. We are now just going to work with the results of the Huff model that used beta values to account for hierarchy (lcr_hierarchy_huff), but feel free to run through this next section with the default huff model to see the differences.
+
+In this first part, we show how this can be done for one Retail Centre - St Helens. We extract the LSOAs for the St Helens Retail Centre easily using the filter function, and then map the extent of the catchment identified by the Huff model.
 
 ```{r}
 ## Extract LSOAs and catchment for the St Helens Retail Centre
@@ -394,7 +398,8 @@ tm_shape(sthelens) +
   tm_fill(col = "orange", alpha = 0.5) +
   tm_borders(col = "black", lwd = 0.25, alpha = 0.2) +
   tm_shape(sthelens_rc) +
-  tm_dots(size = 0.1, col = "red")
+  tm_dots(col = "orange") +
+  tm_text("rcName", size = 0.75)
 ```
 
 But what if we wanted to extract the catchments for each Retail Centre? This can be easily done in R - the operation in a standard GIS software would be a 'dissolve' where you specify the Retail Centre ID's and it would return a dissolved set of LSOAs for each unique value in the Retail Centre ID column.
@@ -417,7 +422,7 @@ What does it look like?
 head(catchments)
 ```
 
-So we have one row for each retail centre, with a dissolved set of LSOA polygons that form the Huff catchment for each centre. Let's map these to see what they look like:
+So we have one row for each Retail Centre, with a dissolved set of LSOA polygons that form the Huff catchment for each centre. Let's map these to see what they look like:
 
 ```{r}
 ## Map the Huff Catchments for the Retail Centres
@@ -437,9 +442,9 @@ That's it - you now have Huff catchments for the Liverpool City Region Retail Ce
 
 That's it! Ok so that's Part 2 of this practical completed, by now you should have a good understanding of:
 
-  * What the basic components of a Huff model are and what they do.
-  * How to fit a Huff model for the LCR Retail Centres
-  * How to convert Huff probabilities into a spatial format, and use this to delineate Huff catchments for the LCR Retail Centres.
+  * What the Huff model is and its basic components.
+  * How to fit a Huff model for the LCR Retail Centres - using the functions available in huff-tools.R.
+  * How to use the results of the Huff model to delineate cathcments for centres.
   
 ----
 

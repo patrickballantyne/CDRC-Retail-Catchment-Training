@@ -1,5 +1,5 @@
 ---
-title: "CDRC 'Retail Catchments in R' Training Course (Part 1)"
+title: "CDRC 'Retail Catchments in R' (Part 1)"
 date: "February 2021"
 output: html_document
 ---
@@ -10,7 +10,7 @@ knitr::opts_chunk$set(warning = FALSE, message = FALSE)
 
 ## Welcome
 
-This is part 1 of the 2 part course from CDRC on using the UK retail centres dataset to create retail catchments. The video in this part introduces the Retail Centres data set, and the practical session shows you how to work with the Retail Centres dataset in R. If you are completely new to RStudio, please check out our Short Course on Using R as a GIS.
+This is part 1 of the 2 part course from CDRC on using the UK Retail Centres dataset to create retail catchments. The video in this part introduces the Retail Centres data set, and the practical session shows you how to work with the Retail Centres dataset in R. If you are completely new to RStudio, please check out our [Short Course on Using R as a GIS](https://github.com/nickbearman/intro-r-spatial-analysis).
 
 After completing this material, you will:
 
@@ -39,7 +39,7 @@ Make sure you have set your working directory to wherever you have stored the CD
 
 ## 1. Data (& Preprocessing)
 
-The first dataset we are going to be using is a geopackage containing the updated retail centre boundaries for the UK, which is within your data packs for this practical. We have given you a subset for the Liverpool City Region (LCR), containing the top 20 retail centres within the LCR.
+The first dataset we are going to be using is a geopackage containing the updated Retail Centre boundaries for the UK, which is within your data packs for this practical. We have given you a subset for the Liverpool City Region (LCR), containing the top 20 Retail Centres within the LCR.
 
 All datasets you need for this practical are contained within the 'Data' subfolder within the CDRC-Retail-Catchment-Training folder we provided.
 
@@ -48,14 +48,14 @@ All datasets you need for this practical are contained within the 'Data' subfold
 rc <- st_read("Data/LCR_Retail_Centres_2018.gpkg")
 ```
 
-Let's take a look at the retail centre data:
+Let's take a look at the Retail Centre data:
 
 ```{r}
 ## head() displays the first few rows of a dataframe/simple feature
 head(rc)
 ```
 
-So for each retail centre (polygon):
+So for each Retail Centre (polygon):
 
 * rcID - Unique ID for each Retail Centre
 * n.units - Total number of Retail units in each centre, calculated using the 2018 LDC Secure Retail Unit Data
@@ -77,7 +77,7 @@ tm_shape(rc) +
   tm_text("rcName", size = 0.75)
 ```
 
-For the purpose of this analysis we want to extract the centroids of the Retail Centres to work with and construct catchments from. The sf package has a neat st_centroid() function for extracting centroids from polygons.
+For the purpose of this analysis we want to extract the centroids of the Retail Centres to work with and construct catchments from. For those unfamiliar to centroids, they enable extraction of points from polygons, by taking the central point of the polygon. It is common practice when constructing catchments to do so with point data, so in this sense centroids are very helpful. The sf package has a neat st_centroid() function for extracting centroids from polygons.
 
 ```{r}
 ## Extract centroids
@@ -87,7 +87,7 @@ rc_cent <- st_centroid(rc)
 Let's map the Retail Centre Centroids:
 
 ```{r}
-## Map the centroids - note: tm_dots() is used as the object rc_cent contains point data (retail centre centroids)
+## Map the centroids - note: tm_dots() is used as the object rc_cent contains point data (Retail Centre centroids)
 tm_shape(rc_cent) +
   tm_dots(col = "orange") +
   tm_text("rcName", size = 0.75)
@@ -96,9 +96,9 @@ tm_shape(rc_cent) +
 
 ## 2. Creating a Retail Hierarchy
 
-In this section we are going to build a three-tier hierarchy of retail centres. The hierarchy will be based on two things: the total number of comparison units in the centre (n.comp.units), and whether or not the retail centre is considered a major retail park.
+In this section we are going to build a three-tier hierarchy of Retail Centres. The hierarchy will be based on two things: the total number of comparison units in the centre (n.comp.units), and whether or not the Retail Centre is considered a major retail park.
 
-In this next chunk of code I use the mutate function and case_when statements to generate a new column called 'hierarchy' where the retail centres are assigned as being 'primary', 'secondary' or 'tertiary' based on the number of comparison units in a centre (n.comp.units) and the value for Retail Park.
+In this next chunk of code I use the mutate function and case_when statements to generate a new column called 'hierarchy' where the Retail Centres are assigned as being 'primary', 'secondary' or 'tertiary' based on the number of comparison units in a centre (n.comp.units) and the value for Retail Park.
 
 The conditions are set as follows:
 
@@ -106,7 +106,7 @@ The conditions are set as follows:
   * Secondary Centres - 50 - 99 units **OR** a major retail park
   * Tertiary Centres - Less than 50 units
 
-Notice how I am using & and | in the case_when statements. For example, in the first assignment (tertiary), for a centre to be tertiary it has to have less than 50 comparison units and not be a Retail Park ("N"). In the second example, we assign secondary centres as either those with comparison unit count between 50 and 99 **OR** those that are Retail Parks ("Y").
+Notice how I am using & and | in the case_when statements. For example, in the first assignment (tertiary), for a centre to be tertiary it has to have less than 50 comparison units and not be a Retail Park ("N"). In the second example, we assign secondary centres as either those with comparison unit count between 50 and 99 **OR** those that are Retail Parks ("Y"). Notice how i have used the | symbol to account for the **OR** condiiton in the assignment of secondary centres.
 
 ```{r}
 ## Use mutate and case_when to create the new column - notice how ~ assigns the new values based on the condition
@@ -153,10 +153,10 @@ Ok, so from the rc_cent object you can see that each Retail Centre has now been 
 
 ## 3. Catchments (1) - Fixed-Ring Buffers
 
-Fixed-Ring Buffers can be easily delineated in R using the st_buffer() function, where you give the function a simple features point object and distance (dependent on projection), and it returns a buffer for each individual point. 
+Fixed-Ring Buffers are the simplest catchments, and involve drawing a circular buffer around a store (or retail centre) based on a fixed value of distance, which accounts for the expected distances consumers are willing to travel. Fixed-Ring bufferscan be easily delineated in R using the st_buffer() function, where you give the function a simple features point object and distance (dependent on projection), and it returns a buffer for each individual point. 
 
 ```{r}
-## Extract a 1000m buffer for each retail centre
+## Extract a 1000m buffer for each Retail Centre
 buffer1km <- st_buffer(rc_cent, 1000)
 ```
 
@@ -167,12 +167,13 @@ Let's map these to see what they look like. Note: i am setting alpha to 0.3 so I
 tm_shape(buffer1km) + ## Plot the buffers
   tm_fill(col = "orange", alpha = 0.3) +
   tm_shape(rc_cent) + ## Overlay the centroids
-  tm_dots(col = "black")
+  tm_dots(col = "orange") +
+  tm_text("rcName", size = 0.75)
 ```
 
-However, it is more informative to have buffers that vary in size depending on the hierarchical position of the retail centres. In this next chunk of code I have created a small function to do this. Functions are really helpful tools that enable you to apply a series of methods in sequence and return the output. This is particularly helpful when you need to repeat steps over and over again, as it removes the need for typing out the same lines of code multiple times. For those new to functions, watch the short video below:
+However, it is more informative to have buffers that vary in size depending on the hierarchical position of the Retail Centres. In this next chunk of code I have created a small function to do this. Functions are really helpful tools that enable you to apply a series of methods in sequence and return the output. This is particularly helpful when you need to repeat steps over and over again, as it removes the need for typing out the same lines of code multiple times. For those new to functions, watch the short video below:
 
-*Add Video Here*
+![](Images/Intro-to-Functions.mp4)
 
 The function i have created delineates a 1000m catchment for Retail Centres classed as primary. It has three steps:
 
@@ -187,7 +188,7 @@ To use the function you need to run this next chunk of code to save the function
 ## Run this chunk to save the function to your environment
 get_primary_buffer <- function(centroids) {
   
-  ## Extracts centroids of 'primary' retail centres
+  ## Extracts centroids of 'primary' Retail Centres
   rc_primary <- filter(centroids, hierarchy == "primary")
   
   ## Constructs a 1000m buffer
@@ -212,8 +213,12 @@ Let's plot these:
 tm_shape(buffer1000) +
   tm_fill(col = "orange", alpha = 0.3) +
   tm_shape(rc_cent) +
-  tm_dots()
+  tm_dots(col = "orange") +
+  tm_text("rcName", size = 0.75)
 ```
+
+
+Notice how we have buffers for only the Liverpool City and Southport Retail Centres - as these are the only primary centres in this dataset.
 
 However, if we wanted to build buffers that vary in size depending on the three different hierarchy categories, we would need to build a more complex function. The function below (get_buffer) does the same as the get_primary_buffer function,  but builds catchments for primary, secondary and tertiary centres that differ in size. I have also included some additional arguments (primary_dist, secondary_dist, tertiary_dist) that enable you to modify the size of the buffer for each type of centre.
 
@@ -225,12 +230,12 @@ So, run the next chunk to save the get_buffer function to your environment:
 ## Run this chunk to save the function to your environment
 get_buffer <- function(centroids, primary_dist = 5000, secondary_dist = 3000, tertiary_dist = 1500) {
   
-  ## Split up the retail centres based on hierarchy
+  ## Split up the Retail Centres based on hierarchy
   rc_primary <- filter(centroids, hierarchy == "primary")
   rc_secondary <- filter(centroids, hierarchy == "secondary")
   rc_tertiary <- filter(centroids, hierarchy == "tertiary")
   
-  ## Run the buffer for the different retail centre hierarchies separately
+  ## Run the buffer for the different Retail Centre hierarchies separately
   primary_buffer <- st_buffer(rc_primary, dist = primary_dist)
   secondary_buffer <- st_buffer(rc_secondary, dist = secondary_dist)
   tertiary_buffer <- st_buffer(rc_tertiary, dist = tertiary_dist)
@@ -252,9 +257,10 @@ Excellent! Now map these to see what they look like:
 
 ```{r }
 tm_shape(hbuffer)+ ## Plot the varying fixed-ring buffers
-  tm_fill(col = "hierarchy", alpha = 0.5) + # Setting col to 'hierarchy' tells tmap to generate a different colour buffer for each value in the hierarchy column
+  tm_fill(col = "hierarchy", palette = c("yellow", "orange", "red"), alpha = 0.5) + # Setting col to 'hierarchy' tells tmap to generate a different colour buffer for each value in the hierarchy column
   tm_shape(rc_cent) + ## Overlay the centroids
-  tm_dots(col = "black", alpha = 0.75)
+  tm_dots(col = "orange", alpha = 0.75) +
+  tm_text("rcName", size = 0.75)
 ```
 
 ## 4. Catchments (2) - Drive-Time Catchments
@@ -266,15 +272,17 @@ To get an API key:
 * Visit: https://developer.here.com/. 
 * Sign up to create an account with a 'Freemium' subscription as below:
 
-!(Images/Image1.PNG)
+
+![](Images/Image1.PNG)
+
 
 * Underneath REST, click 'Generate APP'
 * Then click 'Create API Key' 
 * Check that the API Key says 'Enabled' under Status, as below:
 
-!(Images/Image2.png)
+![](Images/Image2.jpg)
 
-* Copy the API Key
+* Copy the API Key, as above
 * Set your API Key within R as below: 
 
 ```{r}
@@ -285,17 +293,23 @@ To get an API key:
 
 ```{r include=FALSE}
 ## Set API key
-set_key("8SZ4umF2UWYjwkgNWFvtAOPFFKLurY7dJ3nU05O_Tlo")
+set_key("5ETKqISJjMbb-7Bz35HA3D33tFDJFO_IMPbfAyUpI1k")
 ```
+
+NOTE: This API key will only be valid for a few hours at a time. If you receive this error in this next section: "Request 'id = 1' failed Status 401." you will need to go back to the HERE website and generate a new API key - if you already have two in use, just delete these on the site and you will be able to create additional API keys. 
 
 ### 4a. Building Simple Drive-Time Catchments
 
-Now you're good to go. The function we are going to be using for drive-time catchments is the isoline() function from the hereR package. You supply the function with a series of points, and can then set various parameters such as whether you want the catchment to be based on distance/time (range_type) and what transport mode you want the catchment to be based on (transport_mode).
+Now you're good to go.
 
-Here is an example for the first Retail Centre in the dataset, where i set a 10-minute catchment based on car being the transport mode. Note: the 'range' argument is where you select the the maximum size of the catchment; in my case it's 10. NOTE: each value you set for range must be multipled by 60 for the delineation to work correctly (e.g. range = (10 * 60))
+Drive-Time Catchments are similar to Fixed-Ring buffers in that they also apply a fixed measure (e.g. distance, time) from a store or retail centre. However, they are different in that they use digitised road networks, speed limits and transport modes to generate a (more accurate) polygon that represents the extent to which a vehicle can travel in all directions under a certain time limit or distance constraint. 
+
+The function we are going to be using for Drive-Time catchments is the isoline() function from the hereR package. You supply the function with a series of points, and can then set various parameters such as whether you want the catchment to be based on distance/time (range_type) and what transport mode you want the catchment to be based on (transport_mode).
+
+Here is an example for the first Retail Centre in the dataset, where i set a 10-minute catchment based on car being the transport mode. The 'range' argument is where you select how you want to determine the maximum size of the catchment; in my case it's by time, and we set a value of 10 - i.e. 10 minutes Drive-Time. NOTE: each value you set for range must be multipled by 60 for the delineation to work correctly (e.g. range = (10 * 60)). We also set transport_mode to "car" for the purposes of the practical, but there are lots of options available in the [isoline documentation](https://munterfinger.github.io/hereR/reference/isoline.html)
 
 ```{r}
-## Extract first retail centre
+## Extract first Retail Centre
 rc_a <- rc_cent[1, ]
 
 ## Extract the 10-minute driving catchment
@@ -305,36 +319,37 @@ iso_a <- isoline(rc_a, range = (10 * 60), range_type = "time", transport_mode = 
 Let's map the isoline and its centroid to see what it looks like:
 
 ```{r }
-## Map the drive-time catchment for the first retail centre
+## Map the drive-time catchment for the first Retail Centre
 tm_shape(iso_a) +
   tm_fill(col = "orange", alpha = 0.5) +
   tm_shape(rc_a) +
-  tm_dots() +
-  tm_text("rcName", size = 0.5)
+  tm_dots(col = "orange") +
+  tm_text("rcName", size = 0.75)
 ```
 
 To extract isolines for more than one point we need to add an additional argument to the isoline function (aggregate = FALSE), which prevents the API from combining each individual isoline into one multipolygon.
 
 ```{r}
-## Extract the 10-minute catchment for every retail centre in LCR
+## Extract the 10-minute catchment for every Retail Centre in LCR
 iso <- isoline(rc_cent, range = (10 * 60), range_type = "time", transport_mode = "car", aggregate = FALSE)
 ```
 
 Map them:
 
 ```{r }
-## Map the 10-minute drive-time catchments for LCR retail centres
+## Map the 10-minute drive-time catchments for LCR Retail Centres
 tm_shape(iso) +
   tm_fill(col = "orange", alpha = 0.3) +
   tm_shape(rc_cent) +
-  tm_dots()
+  tm_dots(col = "orange") +
+  tm_text("rcName", size = 0.75)
 ```
 
-### 4b. Building Drive-Time Catchments for different dates/times
+### 4b. Drive-Time Catchments at Different Times/Days
 
 An interesting element with building drive-time catchments is to what extent variations in date/time and traffic are taken into account when building the catchment. For example, a 10-minute drive-time catchment delineated for a Sunday morning is likely to be much larger than for a Friday evening during rush-hour traffic. To demonstrate this, we are going to implement two drive-time catchments for two different days/times of the week. 
 
-To set this up, we need to use the datetime function in the isoline() function, we will do it again with the first retail centre in the dataset. First for a Friday in rush hour:
+To set this up, we need to use the datetime function in the isoline() function, we will do it again with the first Retail Centre in the dataset. First for a Friday in rush hour:
 
 ```{r}
 ## First set up the date & time you are interested in - e.g. Friday 5th Feb - 5pm 
@@ -354,44 +369,52 @@ sunday_iso <- isoline(rc_a, range = (10 * 60), range_type = "time", transport_mo
                       datetime = sunday7th)
 ```
 
-Let's map them - we can build two maps individually saving them as p1 and p2, then use tmap_arrange() to plot them side-by-side.
+Let's map them - we can build two maps individually saving them as p1 and p2.
 
 ```{r}
 ## Make the Maps
 p1 <- tm_shape(friday_iso) +
   tm_fill(col = "orange", alpha = 0.75) +
   tm_shape(rc_a) +
-  tm_dots()
+  tm_dots(col = "orange") +
+  tm_text("rcName", size = 0.75)
 p2 <- tm_shape(sunday_iso) +
   tm_fill(col = "orange", alpha = 0.75) +
   tm_shape(rc_a) +
-  tm_dots()
+  tm_dots(col = "orange") +
+  tm_text("rcName", size = 0.75)
 
+```
+
+Now that we have the two maps saved as objects, we can plot them side-by-side, using the tmap_arrange() function. The function (from the tmap package) allows small maps to be arranged in a grid layout. Below i specify that i want them to be side-by-side (ncol = 2), but could stack them on top of eachother by swapping ncol to nrow = 2.
+
+```{r}
 ## Plot them side-by-side
 tmap_arrange(p1, p2, ncol = 2)
 ```
 
-So you can see a much larger catchment for 6am on a sunday morning in comparison to rush hour on a Friday evening. It is sometimes useful therefore to specify the time you want in the hereR API,
+
+So you can see a much larger catchment for 6am on a sunday morning in comparison to rush hour on a Friday evening. It is sometimes useful therefore to specify the time/day you want in the hereR API.
 
 ### 4c. Building Drive-Time Catchments that account for Retail Centre Hierarchy
 
-The final approach we want to take is to use the hierarchies created in Section 2 to build drive-time catchments that vary depending on the position of the Retail Centre in the hierarchy. Similar to Section 3, I am going to use functions again to make drive-time catchments for the retail centres, which vary in size depending on the hierarchy of the retail centre.
+The final approach we want to take is to use the hierarchies created in Section 2 to build drive-time catchments that vary depending on the position of the Retail Centre in the hierarchy. Similar to Section 3, I am going to use functions again to make drive-time catchments for the Retail Centres, which vary in size depending on the hierarchy of the Retail Centre.
 
 As in Section 3 I will first show you how you can build a simplified function to extract drive-time catchments for the **primary centres only**. 
 
 The function below does four things:
 
 * Filters the centroids to get only 'primary' centres
-* Constructs a 5-minute drive-time catchment for the 'primary' centres
-* Merges on the retail centre data to the drive-time catchment
-* Returns 5-minute drive-time catchments for the primary centres
+* Constructs a 15-minute drive-time catchment for the 'primary' centres
+* Merges on the Retail Centre data to the drive-time catchment
+* Returns 15-minute drive-time catchments for the primary centres
 
 Note: i have included three additional arguments. range_type and transport_mode  allow you to select the measure (e.g time, distance) and mode of transport (e.g. car, bike, bus) for the catchment, and dist controls the maximum size of the catchment based on the range_type you selected.
 
 So run the next chunk of code to save the get_primary_drive_time() function to your environment:
 
 ```{r}
-## Function to get drive-time catchments for the primary retail centres
+## Function to get drive-time catchments for the primary Retail Centres
 get_primary_drive_time <- function(centroids, dist = 15, range_type = "time", transport_mode = "car") {
   
   ## Filter the centroids to extract the primary centres
@@ -401,7 +424,7 @@ get_primary_drive_time <- function(centroids, dist = 15, range_type = "time", tr
   primary_drive_time <- isoline(rc_primary, range = (dist * 60), 
                                 range_type = range_type, transport_mode = transport_mode, aggregate = FALSE)
   
-  ## Clean up the isoline - join on the retail centre information
+  ## Clean up the isoline - join on the Retail Centre information
   rc_primary <- rc_primary %>%
     as.data.frame() %>% 
     select(rcID, n.units, n.comp.units, hierarchy) %>%
@@ -425,7 +448,8 @@ Now let's map them, and overlay the centroids to check only the primary centres 
 tm_shape(primary_iso) +
   tm_fill(col = "orange", alpha = 0.5) +
   tm_shape(rc_cent) +
-  tm_dots()
+  tm_dots(col = "orange") +
+  tm_text("rcName", size = 0.75)
 ```
 
 So you can see that not all the centres have catchments, as our function is constructed to only delineate catchments for centres that are 'primary'. The next function fixes this, by repeating the steps in the previous function to extract secondary and tertiary catchments aswell as the primary ones, before joining these together to extract catchments for every centre in the dataset, using rbind() again. 
@@ -437,12 +461,12 @@ Note: i have also included a primary_dist, secondary_dist and tertiary_dist argu
 get_drive_time <- function(centroids, primary_dist = 15, secondary_dist = 10, tertiary_dist = 5, 
                            range_type = "time", transport_mode = "car") {
   
-  ## Split up the retail centres based on hierarchy
+  ## Split up the Retail Centres based on hierarchy
   rc_primary <- filter(centroids, hierarchy == "primary")
   rc_secondary <- filter(centroids, hierarchy == "secondary")
   rc_tertiary <- filter(centroids, hierarchy == "tertiary")
   
-  ## Delineate the isolines for the different retail centre hierarchies separately
+  ## Delineate the isolines for the different Retail Centre hierarchies separately
   primary_drive_time <- isoline(rc_primary, range = (primary_dist * 60),
                                 range_type = range_type, transport_mode = transport_mode, aggregate = FALSE)
   secondary_drive_time <- isoline(rc_secondary, range = (secondary_dist * 60),
@@ -450,7 +474,7 @@ get_drive_time <- function(centroids, primary_dist = 15, secondary_dist = 10, te
   tertiary_drive_time <- isoline(rc_tertiary, range = (tertiary_dist * 60),
                                  range_type = range_type, transport_mode = transport_mode, aggregate = FALSE)
   
-  ## Join the retail centre info onto each set of catchments
+  ## Join the Retail Centre info onto each set of catchments
   primary <- rc_primary %>%
     as.data.frame() %>%
     select(rcID, rcName, n.units, n.comp.units, hierarchy) %>%
@@ -473,30 +497,32 @@ get_drive_time <- function(centroids, primary_dist = 15, secondary_dist = 10, te
 Now you can run the function. We want to extract a set of drive time catchments using different values for each level of the hierarchy - 15 minutes for primary centres, 10 minutes for secondary centres and 5 minutes for the tertiary centres. 
 
 ```{r}
-## Extract the hierarchical drive time catchments for LCR retail centres
+## Extract the hierarchical drive time catchments for LCR Retail Centres
 iso_hierarchy <- get_drive_time(rc_cent, primary_dist = 15, secondary_dist = 10, tertiary_dist = 5, 
                                 range_type = "time", transport_mode = "car")
 ```
 
-Great! Now you have drive-time catchments for the retail centres that account for the hierarchy. Let's map them to see what they look like:
+Great! Now you have drive-time catchments for the Retail Centres that account for the hierarchy. Let's map them to see what they look like:
 
 ```{r }
 tm_shape(iso_hierarchy) + ## Plot the hierarchical drive-time catchments 
-  tm_fill(col = "hierarchy", alpha = 0.5) + ## Setting col = 'hierarchy' tells tmap to plot a different colour for each value of hierarchy
+  tm_fill(col = "hierarchy", palette = c("yellow", "orange", "red"), alpha = 0.5) + ## Setting col = 'hierarchy' tells tmap to plot a different colour for each value of hierarchy
   tm_shape(rc_cent) + ## Overlay the centroids
-  tm_dots()
+  tm_dots(col = "orange" ) +
+  tm_text("rcName", size = 0.75)
 ```
 
 ### 4d. Optional Exercise - Using Pipes with tmap
 
-A neat trick if you wanted to extract the catchment for one retail centre of interest (e.g. Liverpool Central), would be to using a filter prior to mapping. Remember that pipes automatically feed in the output from one step as the input to the next step, so you won't need to input anything into the tm_shape() argument if you've piped directly from iso_hierarchy.
+A neat trick if you wanted to extract the catchment for one Retail Centre of interest (e.g. Liverpool Central), would be to using a filter prior to mapping. Remember that pipes automatically feed in the output from one step as the input to the next step, so you won't need to input anything into the tm_shape() argument if you've piped directly from iso_hierarchy.
 
 ```{r}
 ## Filter to catchments of interest
 iso_hierarchy %>%
   filter(rcName== "Liverpool City") %>%
   tm_shape() + ## Notice how tm_shape can be left empty as you have piped directly from the iso_hierarchy object
-  tm_fill(col = "orange", alpha = 0.5)
+  tm_fill(col = "orange", alpha = 0.5) +
+  tm_text("rcName", size = 0.75)
 ```
 
 ## Writing Out Your Files
@@ -505,7 +531,8 @@ At this point we need to write out the Retail Centre centroids as they contain t
 
 
 ```{r}
-st_write(rc_cent, "Data/Part2_Retail_Centres.gpkg")
+## Write out to Data folder
+# st_write(rc_cent, "Data/Part2_Retail_Centres.gpkg")
 ```
 
 
@@ -513,10 +540,10 @@ st_write(rc_cent, "Data/Part2_Retail_Centres.gpkg")
 
 That's it! Ok so that's Part 1 of this practical completed, by now you should have a good understanding of:
 
-  * How to generate centroids from polygon data using the st_centroid() function.
-  * How to use mutate and case_when functions from dplyr to generate a hierarchy of retail centres, and how pipes %>% can be used to move more seamlessly through dplyr functions.
-  * How to generate fixed-ring buffers, using the st_buffer() function, and how to use a function to do delineate fixed-ring buffers that differ in extent based on retail centre hierarchy
-  * How to generate drive-time catchments, using the isoline() function from the 'hereR' package, how to construct these for different dates and times, and how to build up sequentially a function to delineate drive-time catchments that differ in extent based on retail centre hierarchy.
+* What the CDRC Retail Centres dataset is and what it looks like
+* How to construct a Hierarchy for the Retail Centres - using dplyr functions and pipes
+* How to delineate fixed-ring buffers for the Retail Centres using st_buffer, and build functions to automate this
+* Know how to derive drive-time catchments for Retail Centres using the isoline() function from the hereR package.
   
   
 ----
