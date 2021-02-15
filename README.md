@@ -2,7 +2,7 @@
 
 ## Welcome
 
-This is the GitHub repo for the CDRC 'Retail Catchments in R' Training Course. Here you will find everything you need for this course including short lectures, workbooks, data and short instructional videos. We have prepared two R markdown workbooks to work through for this course - [Part 1](Workbook-Part1.rmd) and [Part2](Workbook-Part2.rmd).
+This is the GitHub repo for the CDRC 'Retail Catchments in R' Training Course. Here you will find everything you need for this course including short lectures, workbooks, data and short instructional videos. We have prepared two R markdown workbooks to work through for this course - [Part 1](Workbook-Part1.Rmd) and [Part2](Workbook-Part2.Rmd).
 
 
 ## Course Overview
