@@ -1,7 +1,9 @@
 ---
 title: "CDRC 'Retail Catchments in R' (Part 2)"
+output:
+  pdf_document: default
+  html_document: default
 date: "February 2021"
-output: html_document
 ---
 
 ```{r include=FALSE}
@@ -26,7 +28,7 @@ First we want to set up the libraries that we are going to be using for this pra
 library(sf)
 library(dplyr)
 library(tmap)
-tmap_mode("view") ## Interactive Mapping
+tmap_mode("plot") ## Interactive Mapping
 ```
 
 We also need some additional packages for computation of the Huff Model, so go ahead and install the following packages if you don't have them already:
@@ -170,39 +172,15 @@ In this practical we will use the total number of comparison units as the measur
 
 The Beta parameter (or distance decay exponent) is a vital component of the Huff model. It is used to account for the tendency for Retail Centres at the top of the hierarchy ('primary' centres) having a lower distance decay - i.e. their attractiveness is still reduced with distance, but at a much slower rate than the smaller centres ('secondary' and 'tertiary').
 
-Thus, we need to assign a Beta parameter for each of the Retail Centres, which depends on the hierarchical position of that Retail Centre. Again, I am going to use the mutate() and case_when() functions to do so (as in Part 1). We are going to use the following values:
+For now, we are going to use the default value (2), but bear in mind that this can be tweaked to modify the distance decay component, and even be used to apply different beta values depending on hierarchy. 
 
-* Primary Centres - 1.8
-* Secondary Centres - 1.9
-* Tertiary Centres - 2.0
-
-So, run this next line of code to create a new column in your dataset called 'beta' which houses the beta parameters for the Retail Centres:
+Let's go ahead and set the beta value as the default:
 
 ```{r}
-## Create beta parameters, using mutate() and case_when()
-huff_input <- huff_input %>%
-  dplyr::mutate(beta = dplyr::case_when(hierarchy == "primary" ~ 1.8,
-                                          hierarchy == "secondary" ~ 1.9,
-                                            hierarchy == "tertiary" ~ 2.0))
+## Create column called beta, where the value = 2 for each Retail Centre
+huff_input$beta <- 2
 ```
 
-If you don't want to use pipes, you can run this line of code instead:
-
-```{r}
-## Create beta parameters, using mutate() and case_when() NO PIPES
-# huff_input <- mutate(huff_input, beta = case_when(hierarchy == "primary" ~ 1.4,
-#                                           hierarchy == "secondary" ~ 1.6,
-#                                             hierarchy == "tertiary" ~ 1.8) )
-```
-
-Check that the beta components have been assigned:
-
-```{r}
-## use head() to print the first few rows of any data frame or tabular dataset
-head(huff_input)
-```
-
-It should be noted that the beta values can be altered, depending on the requirements, estimation technique etc. The above used values were found to produce the most appropriate catchment areas for the national level. These, of course, may vary for the city level for a number of reasons: a) the number of competitors is smaller within a city, b) there is a violation of a boundary free modelling, and c) the retail hierarchy within a single city may vary from the national one. 
 
 ### 2c. Alpha Exponent
 
@@ -229,7 +207,7 @@ It's all there, so we are ready to fit the model. I have included the arguments 
 * A list of unique names for the origin locations - LSOA Codes (lsoa11cd)
 * A list of pairwise distances between origins and destinations - distance
 
-We also have two additional parameters (alpha, beta). The default values for these are 1 & 2 respectively, but we have also set beta values as above that differ depending on the hierarchy. Firstly, let's implement a huff model with the default parameters:
+We also have two additional parameters (alpha, beta). The default values for these are 1 & 2. Firstly, let's implement a huff model with the default parameters:
 
 ### 3a. Huff Model (Default Parameters)
 
@@ -239,8 +217,8 @@ huff_probs <- huff_basic(destinations_name = huff_input$rcName,
                          destinations_attractiveness = huff_input$n.comp.units,
                          origins_name = huff_input$lsoa11cd,
                          distance = huff_input$distance,
-                         alpha = 1,
-                         beta = 2)
+                         alpha = huff_input$alpha,
+                         beta = huff_input$beta)
 ```
 
 That's it - you've successfully run the Huff Model, let's take a look at the output:
@@ -268,15 +246,45 @@ head(top_probs)
 
 So, the top_probs object contains the highest huff probabilities for each LSOA, sorted (in descending order) by huff probability. Notice how each huff probability also corresponds to a 'destinations_name' or Retail Centre - we can therefore interpret this probability to be the probability someone from that LSOA (e.g. E01007198) will patronise that Retail Centre (e.g. West Kirby).
 
+However, we also want to remove any LSOAs with a huff probability less than 50%, as this will lead to some unusual results. You can do this below with the filter() function:
+
+```{r}
+## Remove LSOAs with huff probs < 50%
+top_probs <- filter(top_probs, huff_probability >= 0.5)
+```
+
+
 ### 3b. Huff Model (specification of *alpha* and *beta*)
 
-Remember in section 2b we specified some beta values for different types of Retail Centres:
+We can also apply different beta values to control the impact of the beta exponent at different levels of the hierarchy. The values can be altered depending on the requirements, estimation technique etc. The values we use in this next section were found to produce the most appropriate catchment areas for the national level. These, of course, may vary for the city level for a number of reasons: a) the number of competitors is smaller within a city, b) there is a violation of a boundary free modelling, and c) the retail hierarchy within a single city may vary from the national one. 
 
-* 1.8 for Primary centres
-* 1.9 for Secondary centres
-* 2.0 for Tertiary centres
+So let's assign some beta values to each of the retail centre hierarchies:
 
-So this time instead of using the default values (alpha = 1, beta = 2), we will use the beta values we assigned earlier - this involves changing the beta argument below:
+```{r}
+## Create beta parameters, using mutate() and case_when()
+huff_input <- huff_input %>%
+  dplyr::mutate(beta = dplyr::case_when(hierarchy == "primary" ~ 1.6,
+                                          hierarchy == "secondary" ~ 1.8,
+                                            hierarchy == "tertiary" ~ 2.0))
+```
+
+If you don't want to use pipes, you can run this line of code instead:
+
+```{r}
+## Create beta parameters, using mutate() and case_when() NO PIPES
+# huff_input <- mutate(huff_input, beta = case_when(hierarchy == "primary" ~ 1.4,
+#                                           hierarchy == "secondary" ~ 1.6,
+#                                             hierarchy == "tertiary" ~ 1.8) )
+```
+
+Check that the beta components have been assigned:
+
+```{r}
+## use head() to print the first few rows of any data frame or tabular dataset
+head(huff_input)
+```
+
+Now that we have specified the beta values we want to use, we can run thehuff model - still using the default alpha parameter - but this time with the beta values that reflect the hierarchical position of the retail centre. 
 
 ```{r}
 ## Fit the huff model, setting alpha to 1 and beta the the beta column, containing the values we set earlier
@@ -284,11 +292,14 @@ hierarchy_huff_probs <- huff_basic(destinations_name = huff_input$rcName,
                          destinations_attractiveness = huff_input$n.comp.units,
                          origins_name = huff_input$lsoa11cd,
                          distance = huff_input$distance,
-                         alpha = 1,
+                         alpha = huff_input$alpha,
                          beta = huff_input$beta)
 
 ## Extract the highest huff probability in each LSOA
 hierarchy_top_probs <- select_by_probs(hierarchy_huff_probs, 1)
+
+## Remove those with < 50% huff probability
+hierarchy_top_probs <- filter(hierarchy_top_probs, huff_probability >= 0.5)
 ```
 
 Inspect the output:

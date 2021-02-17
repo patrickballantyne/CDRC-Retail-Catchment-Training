@@ -39,7 +39,7 @@ Make sure you have set your working directory to wherever you have stored the CD
 
 ## 1. Data (& Preprocessing)
 
-The first dataset we are going to be using is a geopackage containing the updated Retail Centre boundaries for the UK, which is within your data packs for this practical. We have given you a subset for the Liverpool City Region (LCR), containing the top 20 Retail Centres within the LCR.
+The first dataset we are going to be using is a geopackage containing the updated Retail Centre boundaries for the UK, which is within your data packs for this practical. We have given you a subset for the Liverpool City Region (LCR), containing the top 20 Retail Centres - determined as the 20 major comparison destinations -  within the LCR.
 
 All datasets you need for this practical are contained within the 'Data' subfolder within the CDRC-Retail-Catchment-Training folder we provided.
 
@@ -51,8 +51,8 @@ rc <- st_read("Data/LCR_Retail_Centres_2018.gpkg")
 Let's take a look at the Retail Centre data:
 
 ```{r}
-## head() displays the first few rows of a dataframe/simple feature
-head(rc)
+## Print the first ten retail centres
+rc
 ```
 
 So for each Retail Centre (polygon):
@@ -98,13 +98,13 @@ tm_shape(rc_cent) +
 
 In this section we are going to build a three-tier hierarchy of Retail Centres. The hierarchy will be based on two things: the total number of comparison units in the centre (n.comp.units), and whether or not the Retail Centre is considered a major retail park.
 
-In this next chunk of code I use the mutate function and case_when statements to generate a new column called 'hierarchy' where the Retail Centres are assigned as being 'primary', 'secondary' or 'tertiary' based on the number of comparison units in a centre (n.comp.units) and the value for Retail Park.
+In this next chunk of code I use the mutate function and case_when statements to generate a new column called 'hierarchy' where the Retail Centres are assigned as being 'primary', 'secondary' or 'tertiary' based on the number of comparison units in a centre (n.comp.units) and the value for Retail Park. Finally,we sort the dataset by the hierarchy column, using the arrange() function.
 
 The conditions are set as follows:
 
-  * Primary Centres - 100 + units
-  * Secondary Centres - 50 - 99 units **OR** a major retail park
-  * Tertiary Centres - Less than 50 units
+  * Primary Centres - 100 + comparison retail units
+  * Secondary Centres - 50 - 99 comparison retail units **OR** a major retail park
+  * Tertiary Centres - Less than 50 comparison retail units
 
 Notice how I am using & and | in the case_when statements. For example, in the first assignment (tertiary), for a centre to be tertiary it has to have less than 50 comparison units and not be a Retail Park ("N"). In the second example, we assign secondary centres as either those with comparison unit count between 50 and 99 **OR** those that are Retail Parks ("Y"). Notice how i have used the | symbol to account for the **OR** condiiton in the assignment of secondary centres.
 
@@ -113,7 +113,7 @@ Notice how I am using & and | in the case_when statements. For example, in the f
 rc_cent_nopipes <-  mutate(rc_cent, 
                            hierarchy = dplyr::case_when(n.comp.units < 50 & RetailPark == "N" ~ "tertiary",
                                                        (n.comp.units >= 50 & n.comp.units < 100) | RetailPark == "Y" ~ "secondary",
-                                                        n.comp.units >= 100 ~ "primary"))
+                                                        n.comp.units >= 100 ~ "primary")) 
 ```
 
 I then want to extract only certain columns from the data, which i can achieve using the select() function from dplyr:
@@ -123,7 +123,14 @@ I then want to extract only certain columns from the data, which i can achieve u
 rc_cent_nopipes <- select(rc_cent_nopipes, rcID, rcName, n.units, n.comp.units, RetailPark, hierarchy)
 ```
 
-However, there is an alternative to writing two separate chunks of code to create the hierarchy and then extract the columns we want. You may have seen pipes before - %>% - as they are commonly used to integrate various dplyr functions together. They work by taking the output from one function (e.g. the creation of the hierarchy column with mutate) and feed it into the first argument of the next function (e.g. selection of columns with select). I'll show you how you can do it below:
+Finally, i want to sort the data by the hierarchy column
+
+```{r}
+## Sort by hierarchy
+rc_cent_nopipes <- arrange(rc_cent_nopipes, hierarchy)
+```
+
+However, there is an alternative to writing two separate chunks of code to create the hierarchy, extract the columns we want and then sort the data by hierarchy. You may have seen pipes before - %>% - as they are commonly used to integrate various dplyr functions together. They work by taking the output from one function (e.g. the creation of the hierarchy column with mutate) and feed it into the first argument of the next function (e.g. selection of columns with select). I'll show you how you can do it below:
 
 ```{r}
 ## Use pipes to create the new hierarchy column and then select the other columns we are interested in
@@ -131,7 +138,8 @@ rc_cent <- rc_cent %>%
   mutate(hierarchy = dplyr::case_when(n.comp.units < 50 & RetailPark == "N" ~ "tertiary",
                                                        (n.comp.units >= 50 & n.comp.units < 100) | RetailPark == "Y" ~ "secondary",
                                                         n.comp.units >= 100 ~ "primary")) %>%
-  select(rcID, rcName, n.units, n.comp.units, RetailPark, hierarchy)
+  select(rcID, rcName, n.units, n.comp.units, RetailPark, hierarchy) %>%
+  arrange(hierarchy)
 ```
 
 
@@ -139,12 +147,12 @@ Notice how when piping you don't need to tell the mutate() and select() function
 
 ```{r}
 ## Without pipes
-head(rc_cent_nopipes)
+rc_cent_nopipes
 ```
 
 ```{r}
 ## With pipes
-head(rc_cent)
+rc_cent
 ```
 
 The two outputs are identical. Whether you choose to use pipes is up to you - they can really speed up data transformation, but at the same time make it harder to untangle some broken code. For more information and tutorials on piping and how to use it with different dplyr functions, please visit: https://seananderson.ca/2014/09/13/dplyr-intro/
@@ -156,15 +164,15 @@ Ok, so from the rc_cent object you can see that each Retail Centre has now been 
 Fixed-Ring Buffers are the simplest catchments, and involve drawing a circular buffer around a store (or retail centre) based on a fixed value of distance, which accounts for the expected distances consumers are willing to travel. Fixed-Ring bufferscan be easily delineated in R using the st_buffer() function, where you give the function a simple features point object and distance (dependent on projection), and it returns a buffer for each individual point. 
 
 ```{r}
-## Extract a 1000m buffer for each Retail Centre
-buffer1km <- st_buffer(rc_cent, 1000)
+## Extract a 1500m buffer for each Retail Centre
+buffer1.5km <- st_buffer(rc_cent, 1500)
 ```
 
 Let's map these to see what they look like. Note: i am setting alpha to 0.3 so I can see overlapping buffers clearly.
 
 ```{r }
 ## Map the buffers
-tm_shape(buffer1km) + ## Plot the buffers
+tm_shape(buffer1.5km) + ## Plot the buffers
   tm_fill(col = "orange", alpha = 0.3) +
   tm_shape(rc_cent) + ## Overlay the centroids
   tm_dots(col = "orange") +
@@ -175,11 +183,11 @@ However, it is more informative to have buffers that vary in size depending on t
 
 ![](Images/Intro-to-Functions.mp4)
 
-The function i have created delineates a 1000m catchment for Retail Centres classed as primary. It has three steps:
+The function i have created delineates a 5000m catchment for Retail Centres classed as primary. It has three steps:
 
 * Filters the centroids to get only 'primary' centres
-* Constructs a 1000m buffer for the 'primary' centres
-* Returns the 1000m buffer for the primary centres
+* Constructs a 5000m buffer for the 'primary' centres
+* Returns the 5000m buffer for the primary centres
 
 To use the function you need to run this next chunk of code to save the function to your environment, and then you can apply the function in a subsequent line of code to your dataset, to extract the catchments. 
 
@@ -191,10 +199,10 @@ get_primary_buffer <- function(centroids) {
   ## Extracts centroids of 'primary' Retail Centres
   rc_primary <- filter(centroids, hierarchy == "primary")
   
-  ## Constructs a 1000m buffer
-  primary_buffer <- st_buffer(rc_primary, dist = 1000)
+  ## Constructs a 5000m buffer
+  primary_buffer <- st_buffer(rc_primary, dist = 5000)
   
-  ## Return the 1000m buffer
+  ## Return the 5000m buffer
   return(primary_buffer)
 }
 ```
@@ -203,14 +211,14 @@ So now that i have the get_primary_buffer function saved under 'functions' in my
 
 ```{r}
 ## Get primary buffers for LCR Retail Centres
-buffer1000 <- get_primary_buffer(rc_cent)
+pbuffer <- get_primary_buffer(rc_cent)
 ```
 
 Let's plot these:
 
 ```{r}
 ## Plot the primary buffers and all the centroids, to check only primary centres have catchments
-tm_shape(buffer1000) +
+tm_shape(pbuffer) +
   tm_fill(col = "orange", alpha = 0.3) +
   tm_shape(rc_cent) +
   tm_dots(col = "orange") +
@@ -293,7 +301,7 @@ To get an API key:
 
 ```{r include=FALSE}
 ## Set API key
-set_key("5ETKqISJjMbb-7Bz35HA3D33tFDJFO_IMPbfAyUpI1k")
+set_key("fJv3ARHaD7NqbyDgbdhYWIW8cY4GGzogRf1Gk3mU5_k")
 ```
 
 NOTE: This API key will only be valid for a few hours at a time. If you receive this error in this next section: "Request 'id = 1' failed Status 401." you will need to go back to the HERE website and generate a new API key - if you already have two in use, just delete these on the site and you will be able to create additional API keys. 
@@ -306,14 +314,14 @@ Drive-Time Catchments are similar to Fixed-Ring buffers in that they also apply 
 
 The function we are going to be using for Drive-Time catchments is the isoline() function from the hereR package. You supply the function with a series of points, and can then set various parameters such as whether you want the catchment to be based on distance/time (range_type) and what transport mode you want the catchment to be based on (transport_mode).
 
-Here is an example for the first Retail Centre in the dataset, where i set a 10-minute catchment based on car being the transport mode. The 'range' argument is where you select how you want to determine the maximum size of the catchment; in my case it's by time, and we set a value of 10 - i.e. 10 minutes Drive-Time. NOTE: each value you set for range must be multipled by 60 for the delineation to work correctly (e.g. range = (10 * 60)). We also set transport_mode to "car" for the purposes of the practical, but there are lots of options available in the [isoline documentation](https://munterfinger.github.io/hereR/reference/isoline.html)
+Here is an example for the Liverpool City Retail Centre in the dataset, where i set a 15-minute catchment based on car being the transport mode. The 'range' argument is where you select how you want to determine the maximum size of the catchment; in my case it's by time, and we set a value of 15 - i.e. 15 minutes Drive-Time. NOTE: each value you set for range must be multipled by 60 for the delineation to work correctly (e.g. range = (15 * 60)). We also set transport_mode to "car" for the purposes of the practical, but there are lots of options available in the [isoline documentation](https://munterfinger.github.io/hereR/reference/isoline.html)
 
 ```{r}
-## Extract first Retail Centre
+## Extract Liverpool City Retail Centre - the first in our dataset
 rc_a <- rc_cent[1, ]
 
 ## Extract the 10-minute driving catchment
-iso_a <- isoline(rc_a, range = (10 * 60), range_type = "time", transport_mode = "car")
+iso_a <- isoline(rc_a, range = (15 * 60), range_type = "time", transport_mode = "car")
 ```
 
 Let's map the isoline and its centroid to see what it looks like:
@@ -327,17 +335,17 @@ tm_shape(iso_a) +
   tm_text("rcName", size = 0.75)
 ```
 
-To extract isolines for more than one point we need to add an additional argument to the isoline function (aggregate = FALSE), which prevents the API from combining each individual isoline into one multipolygon.
+To extract isolines for more than one point we need to add an additional argument to the isoline function (aggregate = FALSE), which prevents the API from combining each individual isoline into one multipolygon. In this case we are going to construct a 5-minute drive-time catchment for each centre:
 
 ```{r}
-## Extract the 10-minute catchment for every Retail Centre in LCR
-iso <- isoline(rc_cent, range = (10 * 60), range_type = "time", transport_mode = "car", aggregate = FALSE)
+## Extract the 5-minute catchment for every Retail Centre in LCR
+iso <- isoline(rc_cent, range = (5 * 60), range_type = "time", transport_mode = "car", aggregate = FALSE)
 ```
 
 Map them:
 
 ```{r }
-## Map the 10-minute drive-time catchments for LCR Retail Centres
+## Map the 5-minute drive-time catchments for LCR Retail Centres
 tm_shape(iso) +
   tm_fill(col = "orange", alpha = 0.3) +
   tm_shape(rc_cent) +
