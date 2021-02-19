@@ -1,8 +1,8 @@
 ---
 title: "CDRC 'Retail Catchments in R' (Part 2)"
 output:
-  pdf_document: default
   html_document: default
+  pdf_document: default
 date: "February 2021"
 ---
 
@@ -28,7 +28,7 @@ First we want to set up the libraries that we are going to be using for this pra
 library(sf)
 library(dplyr)
 library(tmap)
-tmap_mode("plot") ## Interactive Mapping
+tmap_mode("view") ## Interactive Mapping
 ```
 
 We also need some additional packages for computation of the Huff Model, so go ahead and install the following packages if you don't have them already:
@@ -263,18 +263,18 @@ So let's assign some beta values to each of the retail centre hierarchies:
 ```{r}
 ## Create beta parameters, using mutate() and case_when()
 huff_input <- huff_input %>%
-  dplyr::mutate(beta = dplyr::case_when(hierarchy == "primary" ~ 1.6,
-                                          hierarchy == "secondary" ~ 1.8,
-                                            hierarchy == "tertiary" ~ 2.0))
+  dplyr::mutate(beta = dplyr::case_when(hierarchy == "primary" ~ 2.8,
+                                          hierarchy == "secondary" ~ 3.0,
+                                            hierarchy == "tertiary" ~ 3.2))
 ```
 
 If you don't want to use pipes, you can run this line of code instead:
 
 ```{r}
 ## Create beta parameters, using mutate() and case_when() NO PIPES
-# huff_input <- mutate(huff_input, beta = case_when(hierarchy == "primary" ~ 1.4,
-#                                           hierarchy == "secondary" ~ 1.6,
-#                                             hierarchy == "tertiary" ~ 1.8) )
+# huff_input <- mutate(huff_input, beta = case_when(hierarchy == "primary" ~ 2.8,
+#                                           hierarchy == "secondary" ~ 3.0,
+#                                             hierarchy == "tertiary" ~ 3.2) )
 ```
 
 Check that the beta components have been assigned:
@@ -365,6 +365,8 @@ head(lcr_hierarchy_huff)
 
 We can map the output, using the rcName column in the tm_fill() argument to show us which LSOAs have been allocated to which Retail Centres - first lets do it for the Huff model using default parameters.
 
+NOTE: As we are selecting huff probabilities over 50% or more, some LSOAs will be missing. 
+
 ```{r}
 ## Map the allocation of LSOAs to Retail Centres - notice the additional arguments in tm_layout() to move the legend outside the map frame, and tm_borders() to show LSOA boundaries clearly
 tm_shape(lcr_huff) +
@@ -383,33 +385,48 @@ tm_shape(lcr_hierarchy_huff) +
   tm_layout(legend.outside = TRUE, legend.outside.position = "right")
 ```
 
+Notice how the large primary centres (Liverpool City and Southport) have really large catchments. We can increase the probability threshold to 75%  and then map the allocation of LSOAs to see what difference that makes:
+
+```{r}
+## Filter rows with huff probability over 75%
+lcr_huff_75 <- filter(lcr_hierarchy_huff, huff_probability >= 0.75)
+
+## Map the output
+tm_shape(lcr_huff_75) +
+  tm_fill(col = "rcName", alpha = 0.4) +
+  tm_borders(col = "black", lwd = 0.25, alpha = 0.2) +
+  tm_layout(legend.outside = TRUE, legend.outside.position = "right")
+```
+
+These catchments look much more sensible! 
+
 ## 5. Extracting Huff Catchments 
 
 The final part of this practical is using the huff probabilities and allocation of LSOAs to the Retail Centres to generate Huff catchments for each Retail Centre. We are now just going to work with the results of the Huff model that used beta values to account for hierarchy (lcr_hierarchy_huff), but feel free to run through this next section with the default huff model to see the differences.
 
-In this first part, we show how this can be done for one Retail Centre - St Helens. We extract the LSOAs for the St Helens Retail Centre easily using the filter function, and then map the extent of the catchment identified by the Huff model.
+In this first part, we show how this can be done for one Retail Centre - Widnes. We extract the LSOAs for the Widnes Retail Centre easily using the filter function, and then map the extent of the catchment identified by the Huff model.
 
 ```{r}
-## Extract LSOAs and catchment for the St Helens Retail Centre
-sthelens <- filter(lcr_hierarchy_huff, rcName == "St Helens")
+## Extract LSOAs and catchment for the Widnes Retail Centre
+widnes <- filter(lcr_huff_75, rcName == "Widnes")
 ```
 
 And extract the corresponding Retail Centre (centroid) too:
 
 ```{r}
-## Extract the St Helen's Retail Centre Centroid
-sthelens_rc <- filter(rc, rcName == "St Helens")
+## Extract the Widnes Retail Centre Centroid
+widnes_rc <- filter(rc, rcName == "Widnes")
 ```
 
 Now we can map these LSOAs (tm_fill) and the St Helens Retail Centre Centroid (tm_dots):
 
 ```{r}
-## Map the St Helens Retail Centre and Huff Catchment
-tm_shape(sthelens) +
+## Map the Widnes Retail Centre and Huff Catchment
+tm_shape(widnes) +
   tm_fill(col = "orange", alpha = 0.5) +
   tm_borders(col = "black", lwd = 0.25, alpha = 0.2) +
-  tm_shape(sthelens_rc) +
-  tm_dots(col = "orange") +
+  tm_shape(widnes_rc) +
+  tm_dots(col = "orange", size = 0.25) +
   tm_text("rcName", size = 0.75)
 ```
 
@@ -421,7 +438,7 @@ Let's implement this below:
 
 ```{r}
 ## Extract Huff catchments for each Retail Centre
-catchments <- lcr_hierarchy_huff %>%
+catchments <- lcr_huff_75 %>%
   group_by(rcName) %>%
   summarise(n.lsoa = n())
 ```
@@ -436,10 +453,14 @@ head(catchments)
 So we have one row for each Retail Centre, with a dissolved set of LSOA polygons that form the Huff catchment for each centre. Let's map these to see what they look like:
 
 ```{r}
-## Map the Huff Catchments for the Retail Centres
+## Map the Huff Catchments for the Retail Centres and overlay Retail Centres
 tm_shape(catchments) +
   tm_fill(col = "rcName", alpha = 0.4) +
-  tm_borders(col = "black", lwd = 0.25, alpha = 0.2)
+  tm_borders(col = "black", lwd = 0.25, alpha = 0.2) +
+  tm_shape(rc) +
+  tm_dots(size = 0.015, alpha = 0.1, col = "orange") +
+  tm_text("rcName", size = 0.75)+
+  tm_layout(legend.outside = TRUE, legend.outside.position = "right")
 ```
 
 That's it - you now have Huff catchments for the Liverpool City Region Retail Centres. Be sure to write them out:
@@ -457,7 +478,9 @@ That's it! Ok so that's Part 2 of this practical completed, by now you should ha
   * How to fit a Huff model for the LCR Retail Centres - using the functions available in huff-tools.R.
   * How to use the results of the Huff model to delineate cathcments for centres.
   
+  
 ----
+
 
 This practical was written using R and RStudio by Patrick Ballantyne (P.J.Ballantyne@liverpool.ac.uk). 
 
