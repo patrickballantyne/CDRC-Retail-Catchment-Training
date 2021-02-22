@@ -16,10 +16,6 @@ The course is split into two parts:
 * Knowing how to delineate fixed-ring buffers for the Retail Centres
 * Knowing how to derive drive-time catchments for Retail Centres using the HERE API.
 
-  <p align="center">
- <img src ="https://user-images.githubusercontent.com/43341895/108724964-cedca480-751d-11eb-91b9-2764392bb7e5.jpg">
-</p>
-
 
 
 ### **Part 2**
@@ -28,7 +24,6 @@ The course is split into two parts:
 * Knowing how to build a Huff model for Retail Centres in the Liverpool City Region
 * Knowing how to delineate catchments for each Retail Centre using the Huff model
 
-![part2_add](https://user-images.githubusercontent.com/43341895/108724960-cdab7780-751d-11eb-9f24-1ace21560f88.jpg)
 
 ---
 
