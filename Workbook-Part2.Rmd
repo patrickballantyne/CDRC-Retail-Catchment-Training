@@ -112,7 +112,7 @@ The final step we want to take is to join these distances to the Retail Centre d
 huff_input <- rc %>%
   inner_join(distances) %>%
   as.data.frame() %>%
-  select(rcID, rcName,n.comp.units, hierarchy, lsoa11cd, distance)
+  select(rcID, rcName,n.comp.units, RetailPark, hierarchy, lsoa11cd, distance)
 ```
 
 Note: if you would rather not use pipes, you can deconstruct the above code as below and obtain the same output:
@@ -136,6 +136,7 @@ So the dataset contains:
 * rcID - Retail Centre ID's
 * rcName - Retail Centre Names
 * n.comp.units - a count of the number of comparison retail units in each Retail Centre (we saw this in Part 1)
+* RetailPark - a Y/N identifier if the retail centre is a Retail Park or not
 * hierarchy - a hierarchical value for each Retail Centre (primary, secondary, tertiary) based on the number of units in each centre (we calculated this in Part 1)
 * lsoa11cd - LSOA Codes
 * distance - distances (in metres) from each Retail Centre to each LSOA in Liverpool City Region
@@ -167,6 +168,20 @@ But we do not have:
 ### 2a. Attractiveness Scores
 
 In this practical we will use the total number of comparison units as the measure of attractiveness. This is not ideal as usually this would be a pre-computed value based on a number of other parameters, however for the purposes of defining attractiveness, the total number of comparison retailers is arguably an appropriate substitute.
+
+However, we need to make one alteration to these scores; lots of the secondary centres are large retail parks but typically have a similar number of comparison units to other smaller shopping centres. However, these retail parks are typically much more attractive than those, so we need to integrate a slighlty different attractiveness score for the Retail Parks.
+
+In this next line of code we use mutate and ifelse statements again to create a new column: attr_scores, where we set the attractiveness score of retail centres that are not retail parks as the number of comparison units, and double the number of comparison units to get a more representative attractiveness score for the Retail Parks. The ifelse() statements can be complicated, so more information on their structure can be found at: https://www.rdocumentation.org/packages/base/versions/3.6.2/topics/ifelse.
+
+```{r}
+## Create attractiveness score column and modify based on whether retail centre is in a retail park or not
+huff_input <- huff_input %>%
+  mutate(attr_score = n.comp.units) %>%
+  mutate(attr_score, ifelse(RetailPark == "N", attr_score,
+                            ifelse(RetailPark == "Y", attr_score * 2, 0))) %>%
+  select(-c(attr_score)) %>%
+  rename(attr_score = 8)
+```
 
 ### 2b. Beta Exponent
 
@@ -200,25 +215,33 @@ Let's take a look at our dataset, to make sure we have all the necessary inputs 
 head(huff_input)
 ```
 
-It's all there, so we are ready to fit the model. I have included the arguments (e.g. destinations_name) and the columns we are using for each (e.g. rcName) to show you what columns you need to put in which part of the model. But just to remind you:
+Let's extract only the columns we need, in this case it is:
 
-* A list of unique names for the destination locations - Retail Centre Names (rcName)
-* A list of attractiveness score for the destination locations - Attractiveness Indicator for Retail Centres (n.comp.units)
-* A list of unique names for the origin locations - LSOA Codes (lsoa11cd)
-* A list of pairwise distances between origins and destinations - distance
+* rcName - A list of unique names for the destination locations - Retail Centre Names 
+* attr_score - A list of attractiveness score for the destination locations, based on n.comp.units and whether the rc is a Retail Park or not
+* lsoa11cd - A list of unique names for the origin locations - LSOA Codes 
+* distance - A list of pairwise distances between origins and destinations
+* alpha - alpha exponent of the attractiveness score
+* beta - distance decay exponent
 
-We also have two additional parameters (alpha, beta). The default values for these are 1 & 2. Firstly, let's implement a huff model with the default parameters:
+Let's grab these columns:
+
+```{r}
+## Select the columns we need for the Huff Model
+huff_default <- huff_input %>%
+  select(rcName, attr_score, lsoa11cd, distance, alpha, beta)
+```
 
 ### 3a. Huff Model (Default Parameters)
 
 ```{r}
 ## Fit the huff model, setting alpha to 1 and beta to 2 - these are the default parameters
-huff_probs <- huff_basic(destinations_name = huff_input$rcName,
-                         destinations_attractiveness = huff_input$n.comp.units,
-                         origins_name = huff_input$lsoa11cd,
-                         distance = huff_input$distance,
-                         alpha = huff_input$alpha,
-                         beta = huff_input$beta)
+huff_probs <- huff_basic(destinations_name = huff_default$rcName,
+                         destinations_attractiveness = huff_default$attr_score,
+                         origins_name = huff_default$lsoa11cd,
+                         distance = huff_default$distance,
+                         alpha = huff_default$alpha,
+                         beta = huff_default$beta)
 ```
 
 That's it - you've successfully run the Huff Model, let's take a look at the output:
@@ -263,18 +286,18 @@ So let's assign some beta values to each of the retail centre hierarchies:
 ```{r}
 ## Create beta parameters, using mutate() and case_when()
 huff_input <- huff_input %>%
-  dplyr::mutate(beta = dplyr::case_when(hierarchy == "primary" ~ 2.8,
-                                          hierarchy == "secondary" ~ 3.0,
-                                            hierarchy == "tertiary" ~ 3.2))
+  dplyr::mutate(beta = dplyr::case_when(hierarchy == "primary" ~ 1.9,
+                                          hierarchy == "secondary" ~ 2.0,
+                                            hierarchy == "tertiary" ~ 2.1))
 ```
 
 If you don't want to use pipes, you can run this line of code instead:
 
 ```{r}
 ## Create beta parameters, using mutate() and case_when() NO PIPES
-# huff_input <- mutate(huff_input, beta = case_when(hierarchy == "primary" ~ 2.8,
-#                                           hierarchy == "secondary" ~ 3.0,
-#                                             hierarchy == "tertiary" ~ 3.2) )
+# huff_input <- mutate(huff_input, beta = case_when(hierarchy == "primary" ~ 1.9,
+#                                           hierarchy == "secondary" ~ 2.0,
+#                                             hierarchy == "tertiary" ~ 2.1) )
 ```
 
 Check that the beta components have been assigned:
@@ -289,7 +312,7 @@ Now that we have specified the beta values we want to use, we can run thehuff mo
 ```{r}
 ## Fit the huff model, setting alpha to 1 and beta the the beta column, containing the values we set earlier
 hierarchy_huff_probs <- huff_basic(destinations_name = huff_input$rcName,
-                         destinations_attractiveness = huff_input$n.comp.units,
+                         destinations_attractiveness = huff_input$attr_score,
                          origins_name = huff_input$lsoa11cd,
                          distance = huff_input$distance,
                          alpha = huff_input$alpha,
@@ -379,36 +402,23 @@ And now for the Huff model using different beta values for the hierarchies:
 
 ```{r}
 ## Map the allocation of LSOAs to Retail Centres - notice the additional arguments in tm_layout() to move the legend outside the map frame, and tm_borders() to show LSOA boundaries clearly
+tmap_mode("plot")
 tm_shape(lcr_hierarchy_huff) +
   tm_fill(col = "rcName", alpha = 0.4) +
   tm_borders(col = "black", lwd = 0.25, alpha = 0.2) +
   tm_layout(legend.outside = TRUE, legend.outside.position = "right")
 ```
 
-Notice how the large primary centres (Liverpool City and Southport) have really large catchments. We can increase the probability threshold to 75%  and then map the allocation of LSOAs to see what difference that makes:
-
-```{r}
-## Filter rows with huff probability over 75%
-lcr_huff_75 <- filter(lcr_hierarchy_huff, huff_probability >= 0.75)
-
-## Map the output
-tm_shape(lcr_huff_75) +
-  tm_fill(col = "rcName", alpha = 0.4) +
-  tm_borders(col = "black", lwd = 0.25, alpha = 0.2) +
-  tm_layout(legend.outside = TRUE, legend.outside.position = "right")
-```
-
-These catchments look much more sensible! 
-
+ 
 ## 5. Extracting Huff Catchments 
 
-The final part of this practical is using the huff probabilities and allocation of LSOAs to the Retail Centres to generate Huff catchments for each Retail Centre. We are now just going to work with the results of the Huff model that used beta values to account for hierarchy (lcr_hierarchy_huff), but feel free to run through this next section with the default huff model to see the differences.
+The final part of this practical is using the huff probabilities and allocation of LSOAs to the Retail Centres to generate Huff catchments for each Retail Centre. We are now just going to work with the results of the Huff model that used the default alpha and beta values (lcr_huff), but feel free to run through this next section with the huff model using different beta/alpha values to see the differences.
 
 In this first part, we show how this can be done for one Retail Centre - Widnes. We extract the LSOAs for the Widnes Retail Centre easily using the filter function, and then map the extent of the catchment identified by the Huff model.
 
 ```{r}
 ## Extract LSOAs and catchment for the Widnes Retail Centre
-widnes <- filter(lcr_huff_75, rcName == "Widnes")
+widnes <- filter(lcr_huff, rcName == "Widnes")
 ```
 
 And extract the corresponding Retail Centre (centroid) too:
@@ -438,7 +448,7 @@ Let's implement this below:
 
 ```{r}
 ## Extract Huff catchments for each Retail Centre
-catchments <- lcr_huff_75 %>%
+catchments <- lcr_huff %>%
   group_by(rcName) %>%
   summarise(n.lsoa = n())
 ```

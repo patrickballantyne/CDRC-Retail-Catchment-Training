@@ -44,50 +44,74 @@ huff_input <- rc %>%
 
 # 2. Setting up the Huff Model ------------------------------------------------
 
+## Create attractiveness scores, using mutate and ifelse(
+huff_input <- huff_input %>%
+  mutate(attr_score = n.comp.units) %>%
+  mutate(attr_score, ifelse(RetailPark == "N", attr_score,
+                            ifelse(RetailPark == "Y", attr_score * 2, 0))) %>%
+  select(-c(attr_score)) %>%
+  rename(attr_score = 8)
+
 ## Create beta parameters, using mutate() and case_when()
 huff_input <- huff_input %>%
-  dplyr::mutate(beta = dplyr::case_when(hierarchy == "primary" ~ 1.8,
-                                        hierarchy == "secondary" ~ 1.9,
-                                        hierarchy == "tertiary" ~ 2.0))
+  dplyr::mutate(beta = dplyr::case_when(hierarchy == "primary" ~ 1.9,
+                                        hierarchy == "secondary" ~ 2.0,
+                                        hierarchy == "tertiary" ~ 2.1))
 
 ## Create beta parameters, using mutate() and case_when() NO PIPES
-# huff_input <- mutate(huff_input, beta = case_when(hierarchy == "primary" ~ 1.4,
-#                                           hierarchy == "secondary" ~ 1.6,
-#                                             hierarchy == "tertiary" ~ 1.8) )
+# huff_input <- mutate(huff_input, beta = case_when(hierarchy == "primary" ~ 1.9,
+#                                           hierarchy == "secondary" ~ 2.0,
+#                                             hierarchy == "tertiary" ~ 2.1) )
 
 ## Create column called alpha, where the value = 1 for each retail centre
 huff_input$alpha <- 1
+
+## Selecting columns for the huff model
+huff_default <- huff_input %>%
+  select(rcName, attr_score, lsoa11cd, distance, alpha, beta)
 
 
 # 3. Running the Huff Model - Calculating Huff Probabilities --------------
 
 
-# 3a. Huff Model (Default Parameters) -------------------------------------
+# 3a. Huff Model (Default Parameters) ------------------------------------
 
 ## Fit the huff model, setting alpha to 1 and beta to 2 - these are the default parameters
-huff_probs <- huff_basic(destinations_name = huff_input$rcName,
-                         destinations_attractiveness = huff_input$n.comp.units,
-                         origins_name = huff_input$lsoa11cd,
-                         distance = huff_input$distance,
-                         alpha = 1,
-                         beta = 2)
+huff_probs <- huff_basic(destinations_name = huff_default$rcName,
+                         destinations_attractiveness = huff_default$attr_score,
+                         origins_name = huff_default$lsoa11cd,
+                         distance = huff_default$distance,
+                         alpha = huff_default$alpha,
+                         beta = huff_default$beta)
 
 ## Extract the highest huff probability in each LSOA
 top_probs <- select_by_probs(huff_probs, 1)
 
+## Remove LSOAs with huff probs < 50%
+top_probs <- filter(top_probs, huff_probability >= 0.5)
 
-# 3b. Huff Model (specification of *alpha* and *beta*) --------------------
+
+# 3b. Huff Model (specification of beta) --------------------
+
+## Create beta parameters, using mutate() and case_when()
+huff_input <- huff_input %>%
+  dplyr::mutate(beta = dplyr::case_when(hierarchy == "primary" ~ 1.9,
+                                        hierarchy == "secondary" ~ 2.0,
+                                        hierarchy == "tertiary" ~ 2.1))
 
 ## Fit the huff model, setting alpha to 1 and beta the the beta column, containing the values we set earlier
 hierarchy_huff_probs <- huff_basic(destinations_name = huff_input$rcName,
-                                   destinations_attractiveness = huff_input$n.comp.units,
+                                   destinations_attractiveness = huff_input$attr_score,
                                    origins_name = huff_input$lsoa11cd,
                                    distance = huff_input$distance,
-                                   alpha = 1,
+                                   alpha = huff_input$alpha,
                                    beta = huff_input$beta)
 
 ## Extract the highest huff probability in each LSOA
 hierarchy_top_probs <- select_by_probs(hierarchy_huff_probs, 1)
+
+## Remove those with < 50% huff probability
+hierarchy_top_probs <- filter(hierarchy_top_probs, huff_probability >= 0.5)
 
 
 # 4. Mapping the Output ---------------------------------------------------
@@ -132,20 +156,20 @@ tm_shape(lcr_hierarchy_huff) +
 # 5. Extracting Huff Catchments -------------------------------------------
 
 ## Extract LSOAs and catchment for the St Helens Retail Centre
-sthelens <- filter(lcr_hierarchy_huff, rcName == "St Helens")
+widnes <- filter(lcr_huff, rcName == "Widnes")
 
 ## Extract the St Helen's Retail Centre Centroid
-sthelens_rc <- filter(rc, rcName == "St Helens")
+widnes_rc <- filter(rc, rcName == "Widnes")
 
 ## Map the St Helens Retail Centre and Huff Catchment
-tm_shape(sthelens) +
+tm_shape(widnes) +
   tm_fill(col = "orange", alpha = 0.5) +
   tm_borders(col = "black", lwd = 0.25, alpha = 0.2) +
-  tm_shape(sthelens_rc) +
+  tm_shape(widnes_rc) +
   tm_dots(size = 0.1, col = "red")
 
 ## Extract Huff catchments for each Retail Centre
-catchments <- lcr_hierarchy_huff %>%
+catchments <- lcr_huff %>%
   group_by(rcName) %>%
   summarise(n.lsoa = n())
 
