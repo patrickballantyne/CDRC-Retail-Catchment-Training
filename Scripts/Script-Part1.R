@@ -21,7 +21,7 @@ library(hereR)
 rc <- st_read("Data/LCR_Retail_Centres_2018.gpkg")
 
 ## Setup plotting
-tmap_mode("view")
+tmap_mode("plot")
 
 ## Map Retail Centre Polygons for LCR
 tm_shape(rc) +
@@ -112,9 +112,11 @@ hbuffer <- get_buffer(rc_cent, primary_dist = 5000, secondary_dist = 3000, terti
 
 ## Map the output
 tm_shape(hbuffer)+ ## Plot the varying fixed-ring buffers
-  tm_fill(col = "hierarchy", alpha = 0.5) + # Setting col to 'hierarchy' tells tmap to generate a different colour buffer for each value in the hierarchy column
+  tm_fill(col = "hierarchy", alpha = 0.5, palette = c("yellow", "orange", "red")) + # Setting col to 'hierarchy' tells tmap to generate a different colour buffer for each value in the hierarchy column
   tm_shape(rc_cent) + ## Overlay the centroids
-  tm_dots(col = "black", alpha = 0.75)
+  tm_dots(col = "black", alpha = 0.75, size = 0.005) +
+  tm_text("rcName", size = 0.5) +
+  tm_layout(frame = FALSE)
 
 
 # 4. Catchments (2) - Drive-Time Catchments -------------------------------
