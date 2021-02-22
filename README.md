@@ -17,12 +17,9 @@ The course is split into two parts:
 * Knowing how to derive drive-time catchments for Retail Centres using the HERE API.
 
   <p align="center">
- <img width="500" height="650" src ="https://user-images.githubusercontent.com/43341895/108724964-cedca480-751d-11eb-91b9-2764392bb7e5.jpg">
+ <img src ="https://user-images.githubusercontent.com/43341895/108724964-cedca480-751d-11eb-91b9-2764392bb7e5.jpg">
 </p>
 
-  <p align="center">
- <img width="500" height="650" src ="https://user-images.githubusercontent.com/43341895/108724967-cf753b00-751d-11eb-836a-082215b10d54.jpg">
-</p>
 
 
 ### **Part 2**
