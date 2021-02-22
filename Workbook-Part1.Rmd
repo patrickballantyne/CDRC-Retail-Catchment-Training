@@ -19,6 +19,8 @@ After completing this material, you will:
 * Know how to delineate fixed-ring buffers for the Retail Centres
 * Know how to derive drive-time catchments for Retail Centres using the HERE API.
 
+**Insert Video 1**
+
 ## Setup
 
 First we want to set up the libraries that we are going to be using for this practical - most of them should be familiar (e.g. dplyr, sf, tmap). However, the hereR library will likely be new - we are going to use this later, so install it for now and we will come back to it later.
@@ -181,7 +183,7 @@ tm_shape(buffer1.5km) + ## Plot the buffers
 
 However, it is more informative to have buffers that vary in size depending on the hierarchical position of the Retail Centres. In this next chunk of code I have created a small function to do this. Functions are really helpful tools that enable you to apply a series of methods in sequence and return the output. This is particularly helpful when you need to repeat steps over and over again, as it removes the need for typing out the same lines of code multiple times. For those new to functions, watch the short video below:
 
-![](Images/Intro-to-Functions.mp4)
+**Insert Functions Video**
 
 The function i have created delineates a 5000m catchment for Retail Centres classed as primary. It has three steps:
 
@@ -301,7 +303,7 @@ To get an API key:
 
 ```{r include=FALSE}
 ## Set API key
-set_key("fJv3ARHaD7NqbyDgbdhYWIW8cY4GGzogRf1Gk3mU5_k")
+set_key("QseINagzB93aJC2f22jtrEChTidYGllgc8V3nt7rmmE")
 ```
 
 NOTE: This API key will only be valid for a few hours at a time. If you receive this error in this next section: "Request 'id = 1' failed Status 401." you will need to go back to the HERE website and generate a new API key - if you already have two in use, just delete these on the site and you will be able to create additional API keys. 
@@ -400,6 +402,8 @@ Now that we have the two maps saved as objects, we can plot them side-by-side, u
 ## Plot them side-by-side
 tmap_arrange(p1, p2, ncol = 2)
 ```
+
+
 
 
 So you can see a much larger catchment for 6am on a sunday morning in comparison to rush hour on a Friday evening. It is sometimes useful therefore to specify the time/day you want in the hereR API.
@@ -556,7 +560,9 @@ That's it! Ok so that's Part 1 of this practical completed, by now you should ha
   
 ----
 
-This practical was written using R and RStudio by Patrick Ballantyne (P.J.Ballantyne@liverpool.ac.uk). 
+This practical was written using R and RStudio by Patrick Ballantyne (P.J.Ballantyne@liverpool.ac.uk), and conceptualised by Dr. Les Dolega (L.Dolega@liverpool.ac.uk).
+
+Thanks to Nick Bearman for his assistance and advice in putting these materials together.
 
 This work is licensed under the Creative Commons Attribution-ShareAlike 4.0 International License. To view a copy of this license, visit http://creativecommons.org/licenses/by-sa/4.0/deed.en. 
 

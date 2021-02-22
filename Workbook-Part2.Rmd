@@ -80,7 +80,7 @@ For those unfamiliar to LSOA's, a quick plot will show you roughly what they loo
 ## Plot the LSOAs for Liverpool City Region 
 tm_shape(lsoa) +
   tm_fill(alpha = 0.75) +
-  tm_borders(col = "black", lwd = 0.5)
+  tm_borders(col = "black", lwd = 0.25, alpha = 0.5)
 ```
 
 The final dataset we need for this practical is a file called 'Distances.csv', which you can also find in the 'Data' folder. The data is non-spatial (.csv) so we can just use the read.csv() function to read into memory
@@ -136,7 +136,7 @@ So the dataset contains:
 * rcID - Retail Centre ID's
 * rcName - Retail Centre Names
 * n.comp.units - a count of the number of comparison retail units in each Retail Centre (we saw this in Part 1)
-* RetailPark - a Y/N identifier if the retail centre is a Retail Park or not
+* RetailPark - a Y/N identifier if the Retail Centre is a Retail Park or not
 * hierarchy - a hierarchical value for each Retail Centre (primary, secondary, tertiary) based on the number of units in each centre (we calculated this in Part 1)
 * lsoa11cd - LSOA Codes
 * distance - distances (in metres) from each Retail Centre to each LSOA in Liverpool City Region
@@ -145,7 +145,7 @@ Ok, you're all set!
 
 ## 2. Setting up the Huff Model
 
-The Huff model was first proposed in 1964 by Huff, and is calibrated using three main variables - distance, attractiveness and competition- and is one of the underpinning theoretical models in Retail Geography. The Huff model was used in a paper by [Dolega et al. (2016)](https://www.sciencedirect.com/science/article/pii/S0969698915300412) to delineate catchments for a set of retail centres for the UK, and the approach we use in this next section uses the same set of tools the authors used in that paper.
+The Huff model was first proposed in 1964 by Huff, and is calibrated using three main variables - distance, attractiveness and competition- and is one of the underpinning theoretical models in Retail Geography. The Huff model was used in a paper by [Dolega et al. (2016)](https://www.sciencedirect.com/science/article/pii/S0969698915300412) to delineate catchments for a set of Retail Centres for the UK, and the approach we use in this next section uses the same set of tools the authors used in that paper.
 
 For the Huff model to run (using the huff_basic function), we need as input:
 
@@ -153,8 +153,8 @@ For the Huff model to run (using the huff_basic function), we need as input:
 * A list of attractiveness score for the destination locations.
 * A list of unique names for the origin locations.
 * A list of pairwise distances between origins and destinations.
-* A list or scalar for the beta exponent of distance [optional].
-* A list or scalar for the alpha exponent of the attractiveness score [optional].
+* A beta exponent of distance [optional].
+* An alpha exponent of the attractiveness score [optional].
 
 We have the names for destination locations (Retail Centre ID's) and the names for the origin locations (lsoa11cd), aswell as the pairwise distances between the origins and destinations.
 
@@ -169,12 +169,12 @@ But we do not have:
 
 In this practical we will use the total number of comparison units as the measure of attractiveness. This is not ideal as usually this would be a pre-computed value based on a number of other parameters, however for the purposes of defining attractiveness, the total number of comparison retailers is arguably an appropriate substitute.
 
-However, we need to make one alteration to these scores; lots of the secondary centres are large retail parks but typically have a similar number of comparison units to other smaller shopping centres. However, these retail parks are typically much more attractive than those, so we need to integrate a slighlty different attractiveness score for the Retail Parks.
+However, we need to make one alteration to these scores; lots of the secondary centres are large Retail Parks but typically have a similar number of comparison units to other smaller shopping centres. However, these Retail Parks are typically much more attractive than those, so we need to integrate a slighlty different attractiveness score for the Retail Parks.
 
-In this next line of code we use mutate and ifelse statements again to create a new column: attr_scores, where we set the attractiveness score of retail centres that are not retail parks as the number of comparison units, and double the number of comparison units to get a more representative attractiveness score for the Retail Parks. The ifelse() statements can be complicated, so more information on their structure can be found at: https://www.rdocumentation.org/packages/base/versions/3.6.2/topics/ifelse.
+In this next line of code we use mutate and ifelse statements again to create a new column: attr_scores, where we set the attractiveness score of Retail Centres that are not Retail Parks as the number of comparison units, and double the number of comparison units to get a more representative attractiveness score for the Retail Parks. For more information on the structure of ifelse statements using base R, visit: https://www.rdocumentation.org/packages/base/versions/3.6.2/topics/ifelse.
 
 ```{r}
-## Create attractiveness score column and modify based on whether retail centre is in a retail park or not
+## Create attractiveness score column and modify based on whether Retail Centre is in a Retail Park or not
 huff_input <- huff_input %>%
   mutate(attr_score = n.comp.units) %>%
   mutate(attr_score, ifelse(RetailPark == "N", attr_score,
@@ -269,11 +269,11 @@ head(top_probs)
 
 So, the top_probs object contains the highest huff probabilities for each LSOA, sorted (in descending order) by huff probability. Notice how each huff probability also corresponds to a 'destinations_name' or Retail Centre - we can therefore interpret this probability to be the probability someone from that LSOA (e.g. E01007198) will patronise that Retail Centre (e.g. West Kirby).
 
-However, we also want to remove any LSOAs with a huff probability less than 50%, as this will lead to some unusual results. You can do this below with the filter() function:
+However, we also want to remove any LSOAs with a huff probability less than 60%, as otherwise there will be some unusual results, such as LSOAs in South Wirral assigned to the Liverpool City Retail Centre. You can do this below with the filter() function:
 
 ```{r}
 ## Remove LSOAs with huff probs < 50%
-top_probs <- filter(top_probs, huff_probability >= 0.5)
+top_probs <- filter(top_probs, huff_probability >= 0.6)
 ```
 
 
@@ -281,7 +281,7 @@ top_probs <- filter(top_probs, huff_probability >= 0.5)
 
 We can also apply different beta values to control the impact of the beta exponent at different levels of the hierarchy. The values can be altered depending on the requirements, estimation technique etc. The values we use in this next section were found to produce the most appropriate catchment areas for the national level. These, of course, may vary for the city level for a number of reasons: a) the number of competitors is smaller within a city, b) there is a violation of a boundary free modelling, and c) the retail hierarchy within a single city may vary from the national one. 
 
-So let's assign some beta values to each of the retail centre hierarchies:
+So let's assign some beta values to each of the Retail Centre hierarchies:
 
 ```{r}
 ## Create beta parameters, using mutate() and case_when()
@@ -307,7 +307,7 @@ Check that the beta components have been assigned:
 head(huff_input)
 ```
 
-Now that we have specified the beta values we want to use, we can run thehuff model - still using the default alpha parameter - but this time with the beta values that reflect the hierarchical position of the retail centre. 
+Now that we have specified the beta values we want to use, we can run the huff model - still using the default alpha parameter - but this time with the beta values that reflect the hierarchical position of the Retail Centre. 
 
 ```{r}
 ## Fit the huff model, setting alpha to 1 and beta the the beta column, containing the values we set earlier
@@ -321,8 +321,8 @@ hierarchy_huff_probs <- huff_basic(destinations_name = huff_input$rcName,
 ## Extract the highest huff probability in each LSOA
 hierarchy_top_probs <- select_by_probs(hierarchy_huff_probs, 1)
 
-## Remove those with < 50% huff probability
-hierarchy_top_probs <- filter(hierarchy_top_probs, huff_probability >= 0.5)
+## Remove those with < 60% huff probability
+hierarchy_top_probs <- filter(hierarchy_top_probs, huff_probability >= 0.6)
 ```
 
 Inspect the output:
@@ -388,25 +388,33 @@ head(lcr_hierarchy_huff)
 
 We can map the output, using the rcName column in the tm_fill() argument to show us which LSOAs have been allocated to which Retail Centres - first lets do it for the Huff model using default parameters.
 
-NOTE: As we are selecting huff probabilities over 50% or more, some LSOAs will be missing. 
+NOTE: As we are selecting huff probabilities over 50% or more, some LSOAs will be missing from the map; these are the LSOAs containing huff probabilities less than 50%.
 
 ```{r}
 ## Map the allocation of LSOAs to Retail Centres - notice the additional arguments in tm_layout() to move the legend outside the map frame, and tm_borders() to show LSOA boundaries clearly
+## Plot the centroids over these too
 tm_shape(lcr_huff) +
   tm_fill(col = "rcName", alpha = 0.4) +
   tm_borders(col = "black", lwd = 0.25, alpha = 0.2) +
-  tm_layout(legend.outside = TRUE, legend.outside.position = "right")
+  tm_layout(legend.outside = TRUE, legend.outside.position = "right") +
+  tm_shape(rc) +
+  tm_dots(col = "orange", size = 0.05) +
+  tm_text("rcName")
 ```
 
-And now for the Huff model using different beta values for the hierarchies:
+What is evident from this map is that the larger and more attractive Retail Centres (e.g Liverpool City, Southport), have a greater number of LSOAs assigned. Whereas smaller 'tertiary' centres like Bootle and Allerton Road have much smaller huff catchments.
+
+We can now also visualise the results of the huff model that used different beta values for the hierarchies:
 
 ```{r}
 ## Map the allocation of LSOAs to Retail Centres - notice the additional arguments in tm_layout() to move the legend outside the map frame, and tm_borders() to show LSOA boundaries clearly
-tmap_mode("plot")
 tm_shape(lcr_hierarchy_huff) +
   tm_fill(col = "rcName", alpha = 0.4) +
   tm_borders(col = "black", lwd = 0.25, alpha = 0.2) +
-  tm_layout(legend.outside = TRUE, legend.outside.position = "right")
+  tm_layout(legend.outside = TRUE, legend.outside.position = "right") +
+  tm_shape(rc) +
+  tm_dots(col = "orange", size = 0.05) +
+  tm_text("rcName")
 ```
 
  
@@ -414,28 +422,28 @@ tm_shape(lcr_hierarchy_huff) +
 
 The final part of this practical is using the huff probabilities and allocation of LSOAs to the Retail Centres to generate Huff catchments for each Retail Centre. We are now just going to work with the results of the Huff model that used the default alpha and beta values (lcr_huff), but feel free to run through this next section with the huff model using different beta/alpha values to see the differences.
 
-In this first part, we show how this can be done for one Retail Centre - Widnes. We extract the LSOAs for the Widnes Retail Centre easily using the filter function, and then map the extent of the catchment identified by the Huff model.
+In this first part, we show how this can be done for one Retail Centre - Huyton. We extract the LSOAs for the Huyton Retail Centre easily using the filter function, and then map the extent of the catchment identified by the Huff model.
 
 ```{r}
-## Extract LSOAs and catchment for the Widnes Retail Centre
-widnes <- filter(lcr_huff, rcName == "Widnes")
+## Extract LSOAs and catchment for the Huyton Retail Centre
+huyton <- filter(lcr_huff, rcName == "Huyton")
 ```
 
 And extract the corresponding Retail Centre (centroid) too:
 
 ```{r}
-## Extract the Widnes Retail Centre Centroid
-widnes_rc <- filter(rc, rcName == "Widnes")
+## Extract the Huyton Retail Centre Centroid
+huyton_rc <- filter(rc, rcName == "Huyton")
 ```
 
-Now we can map these LSOAs (tm_fill) and the St Helens Retail Centre Centroid (tm_dots):
+Now we can map these LSOAs (tm_fill) and the Huyton Retail Centre Centroid (tm_dots):
 
 ```{r}
-## Map the Widnes Retail Centre and Huff Catchment
-tm_shape(widnes) +
+## Map the Huyton Retail Centre and Huff Catchment
+tm_shape(huyton) +
   tm_fill(col = "orange", alpha = 0.5) +
   tm_borders(col = "black", lwd = 0.25, alpha = 0.2) +
-  tm_shape(widnes_rc) +
+  tm_shape(huyton_rc) +
   tm_dots(col = "orange", size = 0.25) +
   tm_text("rcName", size = 0.75)
 ```
@@ -492,7 +500,9 @@ That's it! Ok so that's Part 2 of this practical completed, by now you should ha
 ----
 
 
-This practical was written using R and RStudio by Patrick Ballantyne (P.J.Ballantyne@liverpool.ac.uk). 
+This practical was conceptualised and written using R and RStudio by Patrick Ballantyne (P.J.Ballantyne@liverpool.ac.uk) and Les Dolega (L.Dolega@liverpool.ac.uk).
+
+Thanks to Nick Bearman for his assistance and advice in putting these materials together.
 
 This work is licensed under the Creative Commons Attribution-ShareAlike 4.0 International License. To view a copy of this license, visit http://creativecommons.org/licenses/by-sa/4.0/deed.en. 
   
