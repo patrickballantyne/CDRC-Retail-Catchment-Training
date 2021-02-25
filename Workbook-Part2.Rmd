@@ -269,11 +269,13 @@ head(top_probs)
 
 So, the top_probs object contains the highest huff probabilities for each LSOA, sorted (in descending order) by huff probability. Notice how each huff probability also corresponds to a 'destinations_name' or Retail Centre - we can therefore interpret this probability to be the probability someone from that LSOA (e.g. E01007198) will patronise that Retail Centre (e.g. West Kirby).
 
-However, we also want to remove any LSOAs with a huff probability less than 60%, as otherwise there will be some unusual results, such as LSOAs in South Wirral assigned to the Liverpool City Retail Centre. You can do this below with the filter() function:
+However, we also want to remove any LSOAs with low huff probabilities, as otherwise there will be some unusual results, such as LSOAs in South Wirral assigned to the Liverpool City Retail Centre. You can do this below with the filter() function. We create two objects below, one with only huff probabilities over 60% (top_probs_60) and one with probabilities over 40% (top_probs_40), so as to illustrate the differences between the two:
 
 ```{r}
-## Remove LSOAs with huff probs < 50%
-top_probs <- filter(top_probs, huff_probability >= 0.6)
+## Remove LSOAs with huff probs < 60%
+top_probs_60 <- filter(top_probs, huff_probability >= 0.6)
+
+top_probs_40 <- filter(top_probs, huff_probability >= 0.4)
 ```
 
 
@@ -322,14 +324,16 @@ hierarchy_huff_probs <- huff_basic(destinations_name = huff_input$rcName,
 hierarchy_top_probs <- select_by_probs(hierarchy_huff_probs, 1)
 
 ## Remove those with < 60% huff probability
-hierarchy_top_probs <- filter(hierarchy_top_probs, huff_probability >= 0.6)
+hierarchy_top_probs_60 <- filter(hierarchy_top_probs, huff_probability >= 0.6)
+## Remove those with < 40% huff probability
+hierarchy_top_probs_40 <- filter(hierarchy_top_probs, huff_probability >= 0.4)
 ```
 
 Inspect the output:
 
 ```{r}
 # head() displays the first few rows of a data frame or tabular object
-head(hierarchy_top_probs)
+head(hierarchy_top_probs_60)
 ```
 
 ## 4. Mapping the Output
@@ -337,63 +341,60 @@ head(hierarchy_top_probs)
 Now that we have our results for the two huff models, we can convert these to a spatial format. First, let's tidy up the top_probs object by changing some of the column names and dropping the distance column:
 
 ```{r}
-## Tidy up top_probs PIPED
-top_probs <-top_probs %>%
+## Tidy up top_probs 60 & 40
+top_probs_60 <- top_probs_60 %>%
+  rename(lsoa11cd = origins_name, rcName = destinations_name) %>%
+  select(lsoa11cd, rcName, huff_probability)
+top_probs_40 <- top_probs_40 %>%
   rename(lsoa11cd = origins_name, rcName = destinations_name) %>%
   select(lsoa11cd, rcName, huff_probability)
 ```
 
-Or without pipes:
 
-```{r}
-## Tidy up top_probs NO PIPES
-# top_probs <- rename(top_probs, lsoa11cd = origins_name, rcName = destinations_name)
-# top_probs <- select(top_probs, lsoa11cd, rcName, huff_probability)
-```
-
-And the same for the Huff model accounting for hierarchy (Piped and Non-Piped approaches):
+And the same for the Huff model accounting for hierarchy:
 
 ```{r}
 ## Tidy up the output of the huff model using different beta values for hierarchy PIPED
-hierarchy_top_probs <-hierarchy_top_probs %>%
+hierarchy_top_probs_60 <-hierarchy_top_probs_60%>%
   rename(lsoa11cd = origins_name, rcName = destinations_name) %>%
   select(lsoa11cd, rcName, huff_probability)
-
-## Tidy up hierarchy_top_probs NO PIPES
-# top_probs <- rename(top_probs, lsoa11cd = origins_name, rcName = destinations_name)
-# top_probs <- select(top_probs, lsoa11cd, rcName, huff_probability)
+hierarchy_top_probs_40 <-hierarchy_top_probs_40%>%
+  rename(lsoa11cd = origins_name, rcName = destinations_name) %>%
+  select(lsoa11cd, rcName, huff_probability)
 ```
 
 Now we are ready to convert it to a spatial format, we are going to do this by joining the top_probs/hierarchy_top_probs objects onto the empty 'lsoa' sf we read in at the start of the practical. The 'lsoa' object contains a column with the LSOA codes (lsoa11cd), and so do the top_probs/hierarchy_top_probs objects, and they both have 989 rows, so we can perform a simple merge to join the two together:
 
 ```{r}
-## Merge the results of the huff model with default parameters onto the LSOAs
-lcr_huff <- merge(lsoa, top_probs, by = "lsoa11cd")
+## Merge the results of the huff model with default parameters onto the LSOAs - 40 & 60%
+lcr_huff_60 <- merge(lsoa, top_probs_60, by = "lsoa11cd")
+lcr_huff_40 <- merge(lsoa, top_probs_40, by = "lsoa11cd")
 
-## Merge on the results of thehuff model accounting for hierarchy with beta values onto the LSOAs
-lcr_hierarchy_huff <- merge(lsoa, hierarchy_top_probs, by = "lsoa11cd")
+## Merge on the results of thehuff model accounting for hierarchy with beta values onto the LSOAs - 40 & 60%
+lcr_hierarchy_huff_60 <- merge(lsoa, hierarchy_top_probs_60, by = "lsoa11cd")
+lcr_hierarchy_huff_40 <- merge(lsoa, hierarchy_top_probs_40, by = "lsoa11cd")
 ```
 
 Now we have two sf objects of LSOAs for Liverpool City Region, containing the huff probabilities to the Retail Centre most likely patronised from each LSOA, the first based on a model using default parameters and the second using differing beta values to account for hierarchy. Let's take a look:
 
 ```{r}
 ## Huff probabilities (default parameters)
-head(lcr_huff)
+head(lcr_huff_60)
 ```
 
 ```{r}
 ## Huff probabilities (beta values set to reflect hierarchy)
-head(lcr_hierarchy_huff)
+head(lcr_hierarchy_huff_60)
 ```
 
 We can map the output, using the rcName column in the tm_fill() argument to show us which LSOAs have been allocated to which Retail Centres - first lets do it for the Huff model using default parameters.
 
-NOTE: As we are selecting huff probabilities over 50% or more, some LSOAs will be missing from the map; these are the LSOAs containing huff probabilities less than 50%.
+NOTE: As we are selecting huff probabilities over 60% or more, some LSOAs will be missing from the map; these are the LSOAs containing huff probabilities less than 60%.
 
 ```{r}
 ## Map the allocation of LSOAs to Retail Centres - notice the additional arguments in tm_layout() to move the legend outside the map frame, and tm_borders() to show LSOA boundaries clearly
 ## Plot the centroids over these too
-tm_shape(lcr_huff) +
+tm_shape(lcr_huff_60) +
   tm_fill(col = "rcName", alpha = 0.4) +
   tm_borders(col = "black", lwd = 0.25, alpha = 0.2) +
   tm_layout(legend.outside = TRUE, legend.outside.position = "right") +
@@ -408,7 +409,7 @@ We can now also visualise the results of the huff model that used different beta
 
 ```{r}
 ## Map the allocation of LSOAs to Retail Centres - notice the additional arguments in tm_layout() to move the legend outside the map frame, and tm_borders() to show LSOA boundaries clearly
-tm_shape(lcr_hierarchy_huff) +
+tm_shape(lcr_hierarchy_huff_60) +
   tm_fill(col = "rcName", alpha = 0.4) +
   tm_borders(col = "black", lwd = 0.25, alpha = 0.2) +
   tm_layout(legend.outside = TRUE, legend.outside.position = "right") +
@@ -417,7 +418,11 @@ tm_shape(lcr_hierarchy_huff) +
   tm_text("rcName")
 ```
 
- 
+### 4.1 Optional Task
+
+Using the huff model outputs where we select probabilities over 40% (lcr_huff_40, lcr_hierarchy_huff_40), produce maps to compare the allocation of LSOAs to retail centres when huff probabilities over 40% are retained, in comparison to those over 60%.
+
+
 ## 5. Extracting Huff Catchments 
 
 The final part of this practical is using the huff probabilities and allocation of LSOAs to the Retail Centres to generate Huff catchments for each Retail Centre. We are now just going to work with the results of the Huff model that used the default alpha and beta values (lcr_huff), but feel free to run through this next section with the huff model using different beta/alpha values to see the differences.
@@ -426,7 +431,7 @@ In this first part, we show how this can be done for one Retail Centre - Huyton.
 
 ```{r}
 ## Extract LSOAs and catchment for the Huyton Retail Centre
-huyton <- filter(lcr_huff, rcName == "Huyton")
+huyton <- filter(lcr_huff_60, rcName == "Huyton")
 ```
 
 And extract the corresponding Retail Centre (centroid) too:
@@ -456,7 +461,7 @@ Let's implement this below:
 
 ```{r}
 ## Extract Huff catchments for each Retail Centre
-catchments <- lcr_huff %>%
+catchments <- lcr_huff_60 %>%
   group_by(rcName) %>%
   summarise(n.lsoa = n())
 ```
@@ -487,6 +492,10 @@ That's it - you now have Huff catchments for the Liverpool City Region Retail Ce
 ## Write out your catchments
 # st_write(catchments, "Data/LCR_RC_Huff_Catchments.gpkg")
 ```
+
+### 5.1 Optional Task
+
+If you are interested, you can repeat this section to extract catchments for the huff model that account for hierarchy (lcr_hierarchy_huff_60), and also for the huff model outputs where we kept probabilities over 40% (lcr_huff_40, lcr_hierarchy_huff_40).
 
 ## Summary 
 
