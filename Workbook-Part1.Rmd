@@ -6,6 +6,8 @@ output: html_document
 
 ```{r include=FALSE}
 knitr::opts_chunk$set(warning = FALSE, message = FALSE)
+library(knitr)
+purl("Workbook-Part1.Rmd", documentation = 0)
 ```
 
 ## Welcome
@@ -29,7 +31,8 @@ First we want to set up the libraries that we are going to be using for this pra
 library(sf)
 library(dplyr)
 library(tmap)
-# install.packages("hereR")
+install.packages("data.table")
+library(data.table)
 library(hereR)
 ```
 
@@ -303,7 +306,7 @@ To get an API key:
 
 ```{r include=FALSE}
 ## Set API key
-set_key("QseINagzB93aJC2f22jtrEChTidYGllgc8V3nt7rmmE")
+set_key("Zf9CWfmYJkFvIce8E0PZCPd3TMlDoX6CvfRIOAgMgWw")
 ```
 
 NOTE: This API key will only be valid for a few hours at a time. If you receive this error in this next section: "Request 'id = 1' failed Status 401." you will need to go back to the HERE website and generate a new API key - if you already have two in use, just delete these on the site and you will be able to create additional API keys. 

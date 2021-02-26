@@ -8,6 +8,7 @@ date: "February 2021"
 
 ```{r include=FALSE}
 knitr::opts_chunk$set(warning = FALSE, message = FALSE)
+purl("Workbook-Part2.Rmd", documentation = 0)
 ```
 
 ## Welcome Back!
@@ -34,7 +35,7 @@ tmap_mode("view") ## Interactive Mapping
 We also need some additional packages for computation of the Huff Model, so go ahead and install the following packages if you don't have them already:
 
 ```{r}
-# install.packages("rgdal")
+install.packages("FNN")
 library(rgdal)
 library(rgeos)
 library(igraph)
