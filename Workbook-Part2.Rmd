@@ -55,7 +55,7 @@ Finally, we need to download some functions that we need for the Huff model. The
 source("Scripts/huff-tools.R")
 ```
 
-You will notice you now have 9 new functions in your environment - the primary ones we will be using are huff_basic() and select_by_probs(). For more information on these functions visit the [huff-tools.R vignette](https://github.com/mpavlis/huff-tools/blob/master/huff-tools%20vignette.pdf).
+You will notice you now have 9 new functions in your environment - the primary ones we will be using are `huff_basic()` and `select_by_probs()`. For more information on these functions visit the [huff-tools.R vignette](https://github.com/mpavlis/huff-tools/blob/master/huff-tools%20vignette.pdf).
 
 ## 1. Data (& Preprocessing)
 
