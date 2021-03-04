@@ -328,7 +328,7 @@ To get an API key:
 
 ```{r include=FALSE}
 ## Set API key
-set_key("Zf9CWfmYJkFvIce8E0PZCPd3TMlDoX6CvfRIOAgMgWw")
+set_key("jC30qBaZ3zeUFcRUAgJpvzqJdZgMEu8JfyfhMXhpXNM")
 ```
 
 **NOTE:** This API key will only be valid for a few hours at a time. If you receive this error in this next section: `"Request 'id = 1' failed Status 401."` you will need to go back to the HERE website and generate a new API key - if you already have two in use, just delete these on the site and you will be able to create additional API keys. 
