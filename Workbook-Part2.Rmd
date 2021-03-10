@@ -170,7 +170,7 @@ But we do not have:
 
 In this practical we will use the total number of comparison units as the measure of attractiveness. This is not ideal as usually this would be a pre-computed value based on a number of other parameters, however for the purposes of defining attractiveness, the total number of comparison retailers is arguably an appropriate substitute.
 
-However, we need to make one alteration to these scores; lots of the secondary centres are large Retail Parks but typically have a similar number of comparison units to other smaller shopping centres. However, these Retail Parks are typically much more attractive than those, so we need to integrate a slightly different attractiveness score for the Retail Parks.
+However, we need to make one alteration to these scores; some of the secondary centres are large Retail Parks but typically have a similar number of comparison units to other smaller shopping centres. However, these Retail Parks are typically much more attractive than those, so we need to integrate a slightly different attractiveness score for the Retail Parks.
 
 In this next line of code we use `mutate` and `ifelse` statements again to create a new column: `attr_scores`, where we set the attractiveness score of Retail Centres that are not Retail Parks as the number of comparison units, and double the number of comparison units to get a more representative attractiveness score for the Retail Parks. For more information on the structure of `ifelse` statements using base R, visit: https://www.rdocumentation.org/packages/base/versions/3.6.2/topics/ifelse.
 
@@ -186,7 +186,7 @@ huff_input <- huff_input %>%
 
 ### 2b. Beta Exponent
 
-The Beta parameter (or distance decay exponent) is a vital component of the Huff model. It is used to account for the tendency for Retail Centres at the top of the hierarchy ('primary' centres) having a lower distance decay - i.e. their attractiveness is still reduced with distance, but at a much slower rate than the smaller centres ('secondary' and 'tertiary').
+The Beta parameter (or distance decay exponent) is a vital component of the Huff model. It is used to account for the tendency for Retail Centres at the top of the hierarchy ('primary' centres) having a lower distance decay - i.e. their attractiveness is still reduced with distance, but at a slower rate than the smaller centres ('secondary' and 'tertiary'). Typically this would be estimated by a statistical model.
 
 For now, we are going to use the default value (2), but bear in mind that this can be tweaked to modify the distance decay component, and even be used to apply different beta values depending on hierarchy. 
 
@@ -252,9 +252,9 @@ That's it - you've successfully run the Huff Model, let's take a look at the out
 head(huff_probs)
 ```
 
-Ok, so we have lots of original information (`origins_name`, `destinations_name` and `distance`), but also some new columns. The column we are interested in is the `huff_probability` column, which contains probabilities between each Retail Centre and every LSOA in the dataset. 
+Ok, so we have lots of original information (`origins_name`, `destinations_name` and `distance`), but also some new columns. The column we are interested in is the `huff_probability` column, which contains patronage probabilities for each Retail Centre and every LSOA in the dataset. 
 
-For every LSOA, we want to extract the highest huff probability which will correspond to one Retail Centre, allocating that LSOA to the Retail Centre's catchment. To do this, we use the `select_by_probs()` function in your environment from the `huff-tools.R` file. The function takes as input the output of the huff model, and a value (`x`) that selects the top x amount of huff probabilities for each LSOA. In this case we are just going to set this to one, to extract the top huff probability for each LSOA.
+We want to extract the highest huff probability for each LSOA, in effect allocating that LSOA to the Retail Centre's catchment (Note: each LSOA has a probability for each Retail Centres, as in the real world, catchments can largely overlap). To do this, we use the `select_by_probs()` function in your environment from the `huff-tools.R` file. The function takes as input the output of the huff model, and a value (`x`) that selects the top x amount of huff probabilities for each LSOA. In this case we are just going to set this to one, to extract the top huff probability for each LSOA.
 
 ```{r}
 ## Extract the highest huff probability in each LSOA
