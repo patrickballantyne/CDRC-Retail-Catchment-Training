@@ -604,6 +604,8 @@ That's it! OK so that's Part 1 of this practical completed, by now you should ha
 
 This practical was written using R and RStudio by Patrick Ballantyne (P.J.Ballantyne@liverpool.ac.uk), and conceptualised by Dr. Les Dolega (L.Dolega@liverpool.ac.uk).  This version was created on `r format(Sys.time(), '%d %B %Y')`.
 
+The latest version of the workbook is available from https://data.cdrc.ac.uk/dataset/advanced-gis-methods-training-retail-centres-and-catchment-areas and https://github.com/patrickballantyne/CDRC-Retail-Catchment-Training. 
+
 Thanks to Dr. Nick Bearman (nick@geospatialtrainingsolutions.co.uk) for his assistance and advice in putting these materials together.
 
 This work is licensed under the Creative Commons Attribution-ShareAlike 4.0 International License. To view a copy of this license, visit http://creativecommons.org/licenses/by-sa/4.0/deed.en. 

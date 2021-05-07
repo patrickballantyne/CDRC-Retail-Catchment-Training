@@ -1,0 +1,24 @@
+DKAN / Data.cdrc.ac.uk Page Description on https://data.cdrc.ac.uk/dataset/advanced-gis-methods-training-retail-centres-and-catchment-areas
+
+Advanced GIS Methods Training: Retail Centres and Catchment Areas
+
+This course explains what retail centres are, and different methods of constructing catchments for them, including fixed-ring buffers, drive time buffers and Huff model catchments. 
+
+It is split into two parts, each with a video clip and a workbook to work through:
+- Part 1: Retail Centres
+- Part 2: Retail Catchment Areas
+
+*You need some prior knowledge of R to get the most from this course. If you are new to R, we recommend you complete the [Short Course on Using R as a GIS](https://data.cdrc.ac.uk/dataset/short-course-using-r-gis) first.*
+
+After completing the material, you will:
+- Understand what the CDRC Retail Centres dataset is and what it looks like
+- Know how to construct a Hierarchy for the Retail Centres
+- Know how to delineate fixed-ring buffers for the Retail Centres
+- Know how to derive drive-time catchments for Retail Centres using the HERE API
+- Understand what a Huff model is, and what its basic components are
+- Know how to build a Huff model for Retail Centres in the Liverpool City Region 
+- Know how to delineate catchments for each Retail Centre using the Huff model
+
+To access the course, click on Download next to the 'Part 1: Retail Centres' or 'Part 2: Retail Catchment Areas' files below. It is recommended that you have the course material open in one window, and RStudio open in another window next to it, using either a big monitor, or two monitors. If you have any comments or feedback, please email us.  
+
+CDRC periodically run training course featuring the material in this course. Please sign up to our mailing list, check out our website https://www.cdrc.ac.uk or email <a href="mailto:info@cdrc.ac.uk">info@cdrc.ac.uk</a> for more details. 

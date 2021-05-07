@@ -2,7 +2,7 @@
 
 ## Welcome
 
-This is the GitHub repo for the CDRC Advanced GIS Methods Training: Retail Centres and Catchment Areas Training Course. Here you will find everything you need for this course including short lectures, workbooks, data and short instructional videos. We have prepared two R markdown workbooks to work through for this course - [Part 1](Workbook-Part1.Rmd) and [Part2](Workbook-Part2.Rmd), and the .html versions are also available in the folder - e.g. Workbook-Part1.html. 
+This is the GitHub repo for the CDRC Advanced GIS Methods Training: Retail Centres and Catchment Areas Training Course. Here you will find everything you need for this course including short lectures, workbooks, data and short instructional videos. The materials are hosted on the CDRC website at https://data.cdrc.ac.uk/dataset/advanced-gis-methods-training-retail-centres-and-catchment-areas.  We have prepared two R markdown workbooks to work through for this course - [Part 1](Workbook-Part1.Rmd) and [Part2](Workbook-Part2.Rmd), and the .html versions are also available in the folder - e.g. Workbook-Part1.html. 
 
 
 ## Course Overview
