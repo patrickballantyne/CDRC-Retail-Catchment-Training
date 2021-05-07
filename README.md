@@ -25,4 +25,4 @@ The course is split into two parts:
 
 ---
 
-This practical was written by Patrick Ballantyne (P.J.Ballantyne@liverpool.ac.uk), and is  licensed under the Creative Commons Attribution-ShareAlike 4.0 International License. To view a copy of this license, visit http://creativecommons.org/licenses/by-sa/4.0/deed.en.
+This practical was written by Patrick Ballantyne (P.J.Ballantyne@liverpool.ac.uk) and conceptualised by Dr. Les Dolega (L.Dolega@liverpool.ac.uk), and is  licensed under the Creative Commons Attribution-ShareAlike 4.0 International License. To view a copy of this license, visit http://creativecommons.org/licenses/by-sa/4.0/deed.en.
