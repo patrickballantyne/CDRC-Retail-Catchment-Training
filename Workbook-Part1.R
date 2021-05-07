@@ -151,17 +151,17 @@ tm_shape(iso) +
   tm_dots(col = "orange") +
   tm_text("rcName", size = 0.75)
 
-## First set up the date & time you are interested in - e.g. Friday 5th Mar - 5pm 
-friday5th <- as.POSIXct("2020-03-05 17:30:00 CET", tz = "Europe/Zurich")
+## First set up the date & time you are interested in - e.g. Friday 7th May - 5pm 
+friday7th <- as.POSIXct("2021-05-07 17:30:00 BST", tz = "Europe/London")
 ## Build the catchment for Friday (rush hour)
 friday_iso <- isoline(rc_a, range = (10 * 60), range_type = "time", transport_mode = "car",
-                      datetime = friday5th)
+                      datetime = friday7th)
 
-## First set up the date & time you are interested in - e.g. Sunday 7th - 5am
-sunday7th <- as.POSIXct("2020-03-07 05:00:00 CET", tz = "Europe/Zurich")
+## First set up the date & time you are interested in - e.g. Sunday 9th - 5am
+sunday9th <- as.POSIXct("2021-05-09 05:00:00 BST", tz = "Europe/London")
 ## Build the catchment for Friday (rush hour)
 sunday_iso <- isoline(rc_a, range = (10 * 60), range_type = "time", transport_mode = "car",
-                      datetime = sunday7th)
+                      datetime = sunday9th)
 
 ## Make the Maps
 p1 <- tm_shape(friday_iso) +

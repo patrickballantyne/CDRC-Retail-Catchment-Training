@@ -398,21 +398,21 @@ An interesting element with building drive-time catchments is to what extent var
 To set this up, we need to use the datetime function in the `isoline()` function, we will do it again with the first Retail Centre in the dataset. First for a Friday in rush hour:
 
 ```{r}
-## First set up the date & time you are interested in - e.g. Friday 5th Mar - 5pm 
-friday5th <- as.POSIXct("2020-03-05 17:30:00 CET", tz = "Europe/Zurich")
+## First set up the date & time you are interested in - e.g. Friday 7th May - 5pm 
+friday7th <- as.POSIXct("2021-05-07 17:30:00 BST", tz = "Europe/London")
 ## Build the catchment for Friday (rush hour)
 friday_iso <- isoline(rc_a, range = (10 * 60), range_type = "time", transport_mode = "car",
-                      datetime = friday5th)
+                      datetime = friday7th)
 ```
 
 Then for Sunday morning:
 
 ```{r}
-## First set up the date & time you are interested in - e.g. Sunday 7th - 5am
-sunday7th <- as.POSIXct("2020-03-07 05:00:00 CET", tz = "Europe/Zurich")
+## First set up the date & time you are interested in - e.g. Sunday 9th - 5am
+sunday9th <- as.POSIXct("2021-05-09 05:00:00 BST", tz = "Europe/London")
 ## Build the catchment for Friday (rush hour)
 sunday_iso <- isoline(rc_a, range = (10 * 60), range_type = "time", transport_mode = "car",
-                      datetime = sunday7th)
+                      datetime = sunday9th)
 ```
 
 Let's map them - we can build two maps individually saving them as `p1` and `p2`.
@@ -432,9 +432,9 @@ p2 <- tm_shape(sunday_iso) +
 
 ```
 
-Now that we have the two maps saved as objects, we can plot them side-by-side, using the `tmap_arrange()` function. The function (from the `tma`p package) allows small maps to be arranged in a grid layout. Below we specify that we want them to be side-by-side (`ncol = 2`), but we could stack them on top of each other by swapping `ncol =2` to `nrow = 2`. 
+Now that we have the two maps saved as objects, we can plot them side-by-side, using the `tmap_arrange()` function. The function (from the `tma`p package) allows small maps to be arranged in a grid layout. Below we specify that we want them to be side-by-side (`ncol = 2`), but we could stack them on top of each other by swapping `ncol = 2` to `nrow = 2`. 
 
-So you can see a slightly larger catchment for 6am on a sunday morning in comparison to rush hour on a Friday evening. It is sometimes useful therefore to specify the time/day you want in the hereR API.
+So you can see a slightly larger catchment for 6am on a Sunday morning in comparison to rush hour on a Friday evening. It is sometimes useful therefore to specify the time/day you want in the hereR API. *If you don't see any difference, try updating the time to the current week.*
 
 ```{r, error=TRUE}
 ## Plot them side-by-side
