@@ -1,8 +1,6 @@
 ---
-title: "CDRC 'Retail Catchments in R' (Part 2)"
-output:
-  html_document: default
-  pdf_document: default
+title: "Retail Centres and Catchment Areas"
+output: html_document
 ---
 
 ```{r include=FALSE}
@@ -10,6 +8,8 @@ knitr::opts_chunk$set(warning = FALSE, message = FALSE)
 library(knitr)
 purl("Workbook-Part2.Rmd", documentation = 0)
 ```
+
+## Part 2: Retail Catchment Areas
 
 ## Welcome Back!
 
@@ -20,6 +20,14 @@ After completing this material, you will:
 * Understand what a Huff model is, and what its basic components are
 * Know how to build a Huff model for Retail Centres in the Liverpool City Region 
 * Know how to delineate catchments for each Retail Centre using the Huff model
+
+The following video will provide an introduction to Retail Catchment Areas.
+
+----
+
+<iframe width="560" height="315" src="https://www.youtube.com/embed/rYJybmb4kgk" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+
+----
 
 ## Setup
 
@@ -104,7 +112,7 @@ So the data contains three columns:
 * `lsoa11cd` - LSOA Codes; a unique code for each LSOA in the Liverpool City Region.
 * `distance` - distances (in metres) from each Retail Centre to each LSOA (centroid) in Liverpool City Region.
 
-Notice how the first few rows have the same `rcID` value, as each row contains a distance to a different LSOA. These distances have been precomputed for you and packaged in the 'Distances.csv' file, however if you are interested in how to calculate your own set of point to point distances, please visit the documentation for the `route_matrix(`)` function from the `hereR` package (https://www.rdocumentation.org/packages/hereR/versions/0.3.0/topics/route_matrix). 
+Notice how the first few rows have the same `rcID` value, as each row contains a distance to a different LSOA. These distances have been precomputed for you and packaged in the 'Distances.csv' file, however if you are interested in how to calculate your own set of point to point distances, please visit the documentation for the `route_matrix()` function from the `hereR` package (https://www.rdocumentation.org/packages/hereR/versions/0.3.0/topics/route_matrix). 
 
 The final step we want to take is to join these distances to the Retail Centre data (`rc`) we have in our environment. I am going to use pipes in the next step to perform an inner join between the Retail Centre data (`rc`) and the object containing the rc-LSOA distances (`distances`). An inner_join keeps all the rows of both objects, looking for a unique column to join on between the two. In this instance, the inner_join will be performed using the `rcID` column as both `rc` and `distance`s have that column in common. Following this, you will notice I am converting the data to a data frame and selecting only the columns I am interested in keeping:
 
