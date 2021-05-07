@@ -25,7 +25,7 @@ The course is split into two parts:
 
 ---
 
-This practical was written by Patrick Ballantyne (P.J.Ballantyne@liverpool.ac.uk) and conceptualised by Dr. Les Dolega (L.Dolega@liverpool.ac.uk). Thanks to Dr. Nick Bearman (nick@geospatialtrainingsolutions.co.uk) for their assistance and advice in putting together these materials. 
+These materials were written by Patrick Ballantyne (P.J.Ballantyne@liverpool.ac.uk) and conceptualised by Dr. Les Dolega (L.Dolega@liverpool.ac.uk). Thanks to Dr. Nick Bearman (nick@geospatialtrainingsolutions.co.uk) for their assistance and advice in putting together these materials. 
 
 This work is  licensed under the Creative Commons Attribution-ShareAlike 4.0 International License. To view a copy of this license, visit http://creativecommons.org/licenses/by-sa/4.0/deed.en.
 
