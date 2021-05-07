@@ -1,5 +1,5 @@
 ---
-title: "CDRC 'Retail Catchments in R' (Part 1)"
+title: "Retail Centres and Catchment Areas"
 output: html_document
 ---
 
@@ -8,6 +8,9 @@ knitr::opts_chunk$set(warning = FALSE, message = FALSE)
 library(knitr)
 purl("Workbook-Part1.Rmd", documentation = 0)
 ```
+
+
+## Part 1: Retail Centres
 
 ## Welcome
 
@@ -22,7 +25,11 @@ After completing this material, you will:
 
 The following video will provide an introduction to Retail Catchments.
 
-**Insert Video 1**
+----
+
+<iframe width="560" height="315" src="https://www.youtube.com/embed/cRBi5lsYV58" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+
+----
 
 ## Setup
 
@@ -37,7 +44,7 @@ library(data.table)
 library(hereR)
 ```
 
-Make sure you have set your working directory to wherever you have stored the CDRC-Retail-Catchment-Training folder we have provided:
+Make sure you have set your working directory to wherever you have stored the `CDRC-Retail-Catchment-Training` folder we have provided:
 
 ```{r}
 #setwd("CDRC-Retail-Catchment-Training")
@@ -47,7 +54,7 @@ Make sure you have set your working directory to wherever you have stored the CD
 
 The first dataset we are going to be using is a geopackage containing the updated Retail Centre boundaries for the UK, which is within your data packs for this practical. We have given you a subset for the Liverpool City Region (LCR), containing the top 20 Retail Centres - determined as the 20 major comparison destinations -  within the LCR.
 
-All datasets you need for this practical are contained within the 'Data' subfolder within the CDRC-Retail-Catchment-Training folder we provided.
+All datasets you need for this practical are contained within the `Data` subfolder within the `CDRC-Retail-Catchment-Training` folder we provided.
 
 ```{r}
 ## Read in the Retail Centre Boundaries 
@@ -330,7 +337,7 @@ To get an API key:
 
 ```{r include=FALSE}
 ## Set API key
-set_key("GaVydNx-bQsR-r5QNoFveZsEvp43DD1kPAwRtRZ22I0")
+set_key("E3vFx8NThDhQ-2Brnr7HHQJgmn-7InI-fuueW3P2Bgw")
 ```
 
 **NOTE:** This API key will only be valid for a few hours at a time. If you receive this error in this next section: `"Request 'id = 1' failed Status 401."` you will need to go back to the HERE website and generate a new API key - if you already have two in use, just delete these on the site and you will be able to create additional API keys. 
@@ -546,6 +553,8 @@ Now you can run the function. We want to extract a set of drive time catchments 
 iso_hierarchy <- get_drive_time(rc_cent, primary_dist = 15, secondary_dist = 10, tertiary_dist = 5, 
                                 range_type = "time", transport_mode = "car")
 ```
+
+*If you start getting error messages like this: **In (function (res)  : Request 'id = 7' failed: Status 429.** it means you have made too many requests to the HERE API. Wait for a few seconds, and try again. (See https://developer.here.com/documentation/places/dev_guide/topics/http-status-codes.html for details).*
 
 Great! Now you have drive-time catchments for the Retail Centres that account for the hierarchy. Let's map them to see what they look like:
 
