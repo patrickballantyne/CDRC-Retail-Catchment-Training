@@ -23,7 +23,7 @@ After completing this material, you will:
 * Know how to delineate fixed-ring buffers for the Retail Centres
 * Know how to derive drive-time catchments for Retail Centres using the HERE API.
 
-The following video will provide an introduction to Retail Catchments.
+The following video will provide an introduction to Retail Centres.
 
 ----
 
