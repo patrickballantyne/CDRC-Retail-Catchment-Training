@@ -126,7 +126,7 @@ tm_shape(hbuffer)+ ## Plot the varying fixed-ring buffers
 #set_key("insert-key-here")
 
 ## Set API key
-set_key("BFY65LT2zmJEeR4llpiGqU54WJnJW2whnG4KFf6KiR8")
+set_key("Hy2XaUNC0aeDW7bRxOTIyqPwQuD_P3GQsUL-YaqVuR8")
 
 ## Extract Liverpool City Retail Centre - the first in our dataset
 rc_a <- rc_cent[1, ]
