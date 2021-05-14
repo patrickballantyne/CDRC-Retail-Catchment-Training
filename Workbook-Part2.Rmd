@@ -43,7 +43,7 @@ tmap_mode("view") ## Interactive Mapping
 We also need some additional packages for computation of the Huff Model, so go ahead and install the following packages if you don't have them already:
 
 ```{r}
-#install.packages("FNN")
+#install.packages("rgdal")
 library(rgdal)
 library(rgeos)
 library(igraph)
@@ -56,7 +56,7 @@ Make sure you have set your working directory to wherever you have stored the CD
 #setwd("CDRC-Retail-Catchment-Training")
 ```
 
-Finally, we need to download some functions that we need for the Huff model. The functions needed have been packaged in a .R file called huff-tools.R, which you can find in the 'Scripts' folder provided for this course. The file contains 9 functions, two of which we will be using in this practical. To read the file and save the functions to your environment, run the following line of code:
+Finally, we need to download some functions that we need for the Huff model. The functions needed have been packaged in a .R file called `huff-tools.R`, which you can find in the 'Scripts' folder provided for this course. The file contains 9 functions, two of which we will be using in this practical. To read the file and save the functions to your environment, run the following line of code:
 
 ```{r}
 ## Save huff-tools.R functions to memory
@@ -108,13 +108,13 @@ head(distances)
 
 So the data contains three columns:
 
-* `rcID` - Retail Centre ID's (we used these in Part 1).
+* `rcID` - Retail Centre IDs (we used these in Part 1).
 * `lsoa11cd` - LSOA Codes; a unique code for each LSOA in the Liverpool City Region.
 * `distance` - distances (in metres) from each Retail Centre to each LSOA (centroid) in Liverpool City Region.
 
-Notice how the first few rows have the same `rcID` value, as each row contains a distance to a different LSOA. These distances have been precomputed for you and packaged in the 'Distances.csv' file, however if you are interested in how to calculate your own set of point to point distances, please visit the documentation for the `route_matrix()` function from the `hereR` package (https://www.rdocumentation.org/packages/hereR/versions/0.3.0/topics/route_matrix). 
+Notice how the first few rows have the same `rcID` value, as each row contains a distance to a different LSOA. These distances have been precomputed for you and packaged in the `Distances.csv` file, however if you are interested in how to calculate your own set of point to point distances, please visit the documentation for the `route_matrix()` function from the `hereR` package (https://www.rdocumentation.org/packages/hereR/versions/0.3.0/topics/route_matrix). 
 
-The final step we want to take is to join these distances to the Retail Centre data (`rc`) we have in our environment. I am going to use pipes in the next step to perform an inner join between the Retail Centre data (`rc`) and the object containing the rc-LSOA distances (`distances`). An inner_join keeps all the rows of both objects, looking for a unique column to join on between the two. In this instance, the inner_join will be performed using the `rcID` column as both `rc` and `distance`s have that column in common. Following this, you will notice I am converting the data to a data frame and selecting only the columns I am interested in keeping:
+The final step we want to take is to join these distances to the Retail Centre data (`rc`) we have in our environment. I am going to use pipes in the next step to perform an inner join between the Retail Centre data (`rc`) and the object containing the rc-LSOA distances (`distances`). An inner_join keeps all the rows of both objects, looking for a unique column to join on between the two. In this instance, the inner_join will be performed using the `rcID` column as both `rc` and `distance` variables have that column in common. Following this, you will notice I am converting the data to a data frame and selecting only the columns I am interested in keeping:
 
 ```{r}
 ## Joining rc and distances together, and then tidy up the object (data.frame, selecting columns)
@@ -142,12 +142,12 @@ head(huff_input)
 
 So the dataset contains:
 
-* `rcID` - Retail Centre ID's
-* `rcName` - Retail Centre Names
+* `rcID` - Retail Centre IDs
+* `rcName` - Retail Centre names
 * `n.comp.units` - a count of the number of comparison retail units in each Retail Centre (we used this in Part 1)
-* `RetailPark` - a Y/N identifier if the Retail Centre is a Retail Park or not
+* `RetailPark` - a Y/N identifier if the Retail Centre is a retail park or not
 * `hierarchy` - a hierarchical value for each Retail Centre (primary, secondary, tertiary) based on the number of units in each centre (we calculated this in Part 1)
-* `lsoa11cd` - LSOA Codes
+* `lsoa11cd` - LSOA codes
 * `distance` - distances (in metres) from each Retail Centre to each LSOA in Liverpool City Region
 
 Ok, you're all set!
@@ -165,7 +165,7 @@ For the Huff model to run (using the `huff_basic` function), we need as input:
 * A beta exponent of distance [optional].
 * An alpha exponent of the attractiveness score [optional].
 
-We have the names for destination locations (Retail Centre ID's) and the names for the origin locations (`lsoa11cd`), as well as the pairwise distances between the origins and destinations.
+We have the names for destination locations (Retail Centre IDs) and the names for the origin locations (`lsoa11cd`), as well as the pairwise distances between the origins and destinations.
 
 But we do not have:
 
@@ -227,8 +227,8 @@ head(huff_input)
 Let's extract only the columns we need, in this case it is:
 
 * `rcName` - A list of unique names for the destination locations - Retail Centre Names 
-* `attr_score` - A list of attractiveness score for the destination locations, based on `n.comp.units` and whether the `rc` is a Retail Park or not
-* `lsoa11cd` - A list of unique names for the origin locations - LSOA Codes 
+* `attr_score` - A list of attractiveness score for the destination locations, based on `n.comp.units` and whether the `rc` is a retail park or not
+* `lsoa11cd` - A list of unique names for the origin locations - LSOA codes 
 * `distance` - A list of pairwise distances between origins and destinations
 * `alpha` - alpha exponent of the attractiveness score
 * `beta` - distance decay exponent
@@ -253,7 +253,7 @@ huff_probs <- huff_basic(destinations_name = huff_default$rcName,
                          beta = huff_default$beta)
 ```
 
-That's it - you've successfully run the Huff Model, let's take a look at the output:
+That's it - you've successfully run the Huff Model! Let's take a look at the output:
 
 ```{r}
 ## head() displays the first few rows of any data frame or tabular object
@@ -262,7 +262,7 @@ head(huff_probs)
 
 Ok, so we have lots of original information (`origins_name`, `destinations_name` and `distance`), but also some new columns. The column we are interested in is the `huff_probability` column, which contains patronage probabilities for each Retail Centre and every LSOA in the dataset. 
 
-We want to extract the highest huff probability for each LSOA, in effect allocating that LSOA to the Retail Centre's catchment (Note: each LSOA has a probability for each Retail Centres, as in the real world, catchments can largely overlap). To do this, we use the `select_by_probs()` function in your environment from the `huff-tools.R` file. The function takes as input the output of the huff model, and a value (`x`) that selects the top x amount of huff probabilities for each LSOA. In this case we are just going to set this to one, to extract the top huff probability for each LSOA.
+We want to extract the highest huff probability for each LSOA, in effect allocating that LSOA to the Retail Centre's catchment (Note: each LSOA has a probability for each Retail Centres, as in the real world, catchments can largely overlap). To do this, we use the `select_by_probs()` function in your environment from the `huff-tools.R` file. The function takes as input the output of the huff model, and a value (`x`) that selects the top `x` amount of huff probabilities for each LSOA. In this case we are just going to set this to one, to extract the top huff probability for each LSOA.
 
 ```{r}
 ## Extract the highest huff probability in each LSOA
@@ -364,10 +364,10 @@ And the same for the Huff model accounting for hierarchy:
 
 ```{r}
 ## Tidy up the output of the huff model using different beta values for hierarchy PIPED
-hierarchy_top_probs_60 <-hierarchy_top_probs_60%>%
+hierarchy_top_probs_60 <- hierarchy_top_probs_60%>%
   rename(lsoa11cd = origins_name, rcName = destinations_name) %>%
   select(lsoa11cd, rcName, huff_probability)
-hierarchy_top_probs_40 <-hierarchy_top_probs_40%>%
+hierarchy_top_probs_40 <- hierarchy_top_probs_40%>%
   rename(lsoa11cd = origins_name, rcName = destinations_name) %>%
   select(lsoa11cd, rcName, huff_probability)
 ```
@@ -450,7 +450,7 @@ And extract the corresponding Retail Centre (centroid) too:
 huyton_rc <- filter(rc, rcName == "Huyton")
 ```
 
-Now we can map these LSOAs (tm_fill) and the Huyton Retail Centre Centroid (tm_dots):
+Now we can map these LSOAs (`tm_fill`) and the Huyton Retail Centre Centroid (`tm_dots`):
 
 ```{r}
 ## Map the Huyton Retail Centre and Huff Catchment
@@ -462,7 +462,7 @@ tm_shape(huyton) +
   tm_text("rcName", size = 0.75)
 ```
 
-But what if we wanted to extract the catchments for each Retail Centre? This can be easily done in R - the operation in a standard GIS software would be a `dissolve` where you specify the Retail Centre ID's and it would return a dissolved set of LSOAs for each unique value in the Retail Centre ID column.
+But what if we wanted to extract the catchments for each Retail Centre? This can be easily done in R - the operation in a standard GIS software would be a `dissolve` where you specify the Retail Centre IDs and it would return a dissolved set of LSOAs for each unique value in the Retail Centre ID column.
 
 The equivalent in R is to use the `group_by()` and `summarise()` functions together - this has to be piped! We specify that we want to group by Retail Centre (`rcID`) and then add the summarise command which produces one row per Retail Centre, returning a set of dissolved polygons. We have also added an additional argument to the summarise function which calculates the total number of LSOAs in each catchment (`n.lsoa`)
 

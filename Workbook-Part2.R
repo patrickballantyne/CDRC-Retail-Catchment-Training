@@ -7,7 +7,7 @@ library(dplyr)
 library(tmap)
 tmap_mode("view") ## Interactive Mapping
 
-#install.packages("FNN")
+#install.packages("rgdal")
 library(rgdal)
 library(rgeos)
 library(igraph)
@@ -134,10 +134,10 @@ top_probs_40 <- top_probs_40 %>%
   select(lsoa11cd, rcName, huff_probability)
 
 ## Tidy up the output of the huff model using different beta values for hierarchy PIPED
-hierarchy_top_probs_60 <-hierarchy_top_probs_60%>%
+hierarchy_top_probs_60 <- hierarchy_top_probs_60%>%
   rename(lsoa11cd = origins_name, rcName = destinations_name) %>%
   select(lsoa11cd, rcName, huff_probability)
-hierarchy_top_probs_40 <-hierarchy_top_probs_40%>%
+hierarchy_top_probs_40 <- hierarchy_top_probs_40%>%
   rename(lsoa11cd = origins_name, rcName = destinations_name) %>%
   select(lsoa11cd, rcName, huff_probability)
 

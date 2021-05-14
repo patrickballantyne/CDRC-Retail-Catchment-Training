@@ -19,7 +19,7 @@ This is part 1 of the 2 part course from CDRC on using the UK Retail Centres dat
 After completing this material, you will:
 
 * Understand what the CDRC Retail Centres dataset is and what it looks like
-* Know how to construct a Hierarchy for the Retail Centres
+* Know how to construct a basic Hierarchy for the Retail Centres
 * Know how to delineate fixed-ring buffers for the Retail Centres
 * Know how to derive drive-time catchments for Retail Centres using the HERE API.
 
@@ -71,16 +71,16 @@ rc
 So for each Retail Centre (polygon):
 
 * `rcID` - Unique ID for each Retail Centre
-* `n.units` - Total number of Retail units in each centre, calculated using the 2018 LDC Secure Retail Unit Data
-* `n.comp.units` - Total number of Retail units in each centre, classified as 'comparison' retail.
+* `n.units` - Total number of retail units in each centre, calculated using the 2018 LDC Secure Retail Unit Data
+* `n.comp.units` - Total number of retail units in each centre, classified as 'comparison' retail.
 * `rcName` - Name for each Retail Centre
 * `RetailPark` - An indicator that tells us whether the Retail Centre is a major retail park
 
-Let's map the Retail Centre polygons. Throughout this practical we will be using the tmap R package for all exploratory mapping - for more info on tmap visit: https://github.com/mtennekes/tmap.
+Let's map the Retail Centre polygons. Throughout this practical we will be using the R package `tmap` for all exploratory mapping - for more info on tmap visit: https://github.com/mtennekes/tmap.
 
-In the next chunk of code we first setup the plotting mode that we want to use throughout this practical (`tmap_mode`). The default option is `"plot"` which will produce any of your plots over a plain background. By setting `tmap_mode` to `"view"` your layers are plotted automatically over an interactive leaflet basemap. 
+In the next chunk of code we first setup the plotting mode that we want to use throughout this practical (`tmap_mode`). The default option is `"plot"` which will produce any of your plots over a plain background. By setting `tmap_mode` to `"view"` your layers are plotted automatically over an interactive Leaflet basemap. 
 
-Then we plot the Retail Centres by calling the `rc` object in the tm_shape() command, before specifying `tm_fill(`) as the data is polygons not points or lines. Finally, we call `tm_text()` to label each of the polygons, specifying that we want the labels to be drawn from the `rcName` column - containing the names of the Retail Centres.
+Then we plot the Retail Centres by calling the `rc` object in the `tm_shape()` command, before specifying `tm_fill()` as the data is polygons not points or lines. Finally, we call `tm_text()` to label each of the polygons, specifying that we want the labels to be drawn from the `rcName` column - containing the names of the Retail Centres.
 
 ```{r}
 ## Setup plotting
@@ -117,7 +117,7 @@ tm_shape(rc_cent) +
 
 In this section we are going to build a three-tier hierarchy of Retail Centres. The hierarchy will be based on two things: the total number of comparison units in the centre (`n.comp.units`), and whether or not the Retail Centre is considered a major retail park.
 
-In this next chunk of code we use the `mutate` function and `case_when` statements to generate a new column called `'hierarchy'` where the Retail Centres are assigned as being 'primary', 'secondary' or 'tertiary' based on the number of comparison units in a centre (`n.comp.units`) and the value for Retail Park. Finally, we sort the dataset by the hierarchy column, using the arrange() function.
+In this next chunk of code we use the `mutate` function and `case_when` statements to generate a new column called `'hierarchy'` where the Retail Centres are assigned as being 'primary', 'secondary' or 'tertiary' based on the number of comparison units in a centre (`n.comp.units`) and the value for Retail Park. Finally, we sort the dataset by the hierarchy column, using the `arrange()` function.
 
 The conditions are set as follows:
 
@@ -213,8 +213,8 @@ However, it is more informative to have buffers that vary in size depending on t
 
 The function we have created delineates a 5000m catchment for Retail Centres classed as primary. It has three steps:
 
-* Filters the centroids to get only 'primary' centres
-* Constructs a 5000m buffer for the 'primary' centres
+* Filters the centroids to get only primary centres
+* Constructs a 5000m buffer for the primary centres
 * Returns the 5000m buffer for the primary centres
 
 To use the function you need to run this next chunk of code to save the function to your environment, and then you can apply the function in a subsequent line of code to your dataset, to extract the catchments. 
@@ -301,7 +301,7 @@ tm_shape(hbuffer)+ ## Plot the varying fixed-ring buffers
 
 ## 4. Catchments (2) - Drive-Time Catchments
 
-In this section we are going to use the HERE API to delineate drive-time catchments for the Retail Centres. You need to make sure you have the 'hereR' package installed, and then need to get an API key to use the functions within the package.
+In this section we are going to use the HERE API to delineate drive-time catchments for the Retail Centres. You need to make sure you have the `hereR` package installed, and then need to get an API key to use the functions within the package.
 
 To get an API key:
 
@@ -335,7 +335,7 @@ To get an API key:
 
 ```{r include=FALSE}
 ## Set API key
-set_key("vCDN0ru3MdpnoPJxwFDtrnUxPiF5dEX8sH5cyS2KUNY")
+set_key("TBxkTypOla7k66ZzfUGStnnS1caEBSUco6hibB3LndI")
 ```
 
 **NOTE:** This API key will only be valid for a few hours at a time. If you receive this error in this next section: `"Request 'id = 1' failed Status 401."` you will need to go back to the HERE website and generate a new API key - if you already have two in use, just delete these on the site and you will be able to create additional API keys. 
@@ -350,9 +350,9 @@ The function we are going to be using for Drive-Time catchments is the `isoline(
 
 Here is an example for the Liverpool City Retail Centre in the dataset, where we set a 15-minute catchment based on car being the transport mode. The `'range'` argument is where you select how you want to determine the maximum size of the catchment; in this case it's by time, and we set a value of 15 - i.e. 15 minutes Drive-Time. 
 
-*NOTE: each value you set for range must be multiplied by 60 for the delineation to work correctly (e.g. range = (15 * 60)).* 
+*NOTE: each value you set for range must be multiplied by 60 for the delineation to work correctly (e.g. range = (15 x 60)).* 
 
-We also set transport_mode to "car" for the purposes of the practical, but there are lots of options available in the [isoline documentation](https://munterfinger.github.io/hereR/reference/isoline.html).*
+We also set transport_mode to "car" for the purposes of the practical, but there are lots of options available in the [isoline documentation](https://munterfinger.github.io/hereR/reference/isoline.html).
 
 ```{r, warning=FALSE, error=TRUE}
 ## Extract Liverpool City Retail Centre - the first in our dataset
@@ -432,18 +432,18 @@ p2 <- tm_shape(sunday_iso) +
 
 ```
 
-Now that we have the two maps saved as objects, we can plot them side-by-side, using the `tmap_arrange()` function. The function (from the `tma`p package) allows small maps to be arranged in a grid layout. Below we specify that we want them to be side-by-side (`ncol = 2`), but we could stack them on top of each other by swapping `ncol = 2` to `nrow = 2`. 
+Now that we have the two maps saved as objects, we can plot them side-by-side, using the `tmap_arrange()` function. The function (from the `tmap` package) allows small maps to be arranged in a grid layout. Below we specify that we want them to be side-by-side (`ncol = 2`), but we could stack them on top of each other by swapping `ncol = 2` to `nrow = 2`. 
 
-So you can see a slightly larger catchment for 6am on a Sunday morning in comparison to rush hour on a Friday evening. It is sometimes useful therefore to specify the time/day you want in the hereR API. *If you don't see any difference, try updating the time to the current week.*
+So you can see a slightly larger catchment for 6am on a Sunday morning in comparison to rush hour on a Friday evening. It is sometimes useful therefore to specify the time/day you want in the hereR API. *If you don't see any difference, try updating the day and time to the current week.*
 
 ```{r, error=TRUE}
 ## Plot them side-by-side
 tmap_arrange(p1, p2, ncol = 2)
 ```
-
   
   
-
+    
+  
 
 
 ### 4c. Building Drive-Time Catchments that account for Retail Centre Hierarchy

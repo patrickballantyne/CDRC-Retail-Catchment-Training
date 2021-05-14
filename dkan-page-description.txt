@@ -2,7 +2,7 @@ DKAN / Data.cdrc.ac.uk Page Description on https://data.cdrc.ac.uk/dataset/advan
 
 Advanced GIS Methods Training: Retail Centres and Catchment Areas
 
-This course explains what retail centres are, and different methods of constructing catchments for them, including fixed-ring buffers, drive time buffers and Huff model catchments. 
+This course explains what retail centres are, and different methods of constructing catchments for them, including fixed-ring buffers, drive time catchments and Huff model catchments. 
 
 It is split into two parts, each with a video clip and a workbook to work through:
 - Part 1: Retail Centres
@@ -12,7 +12,7 @@ It is split into two parts, each with a video clip and a workbook to work throug
 
 After completing the material, you will:
 - Understand what the CDRC Retail Centres dataset is and what it looks like
-- Know how to construct a Hierarchy for the Retail Centres
+- Know how to construct a basic Hierarchy for the Retail Centres
 - Know how to delineate fixed-ring buffers for the Retail Centres
 - Know how to derive drive-time catchments for Retail Centres using the HERE API
 - Understand what a Huff model is, and what its basic components are

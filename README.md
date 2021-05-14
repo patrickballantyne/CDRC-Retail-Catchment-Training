@@ -12,7 +12,7 @@ The course is split into two parts:
 ### **Part 1**
 
 * Understanding what the CDRC Retail Centres dataset is and what it looks like
-* Knowing how to construct a Hierarchy for the Retail Centres
+* Knowing how to construct a basic Hierarchy for the Retail Centres
 * Knowing how to delineate fixed-ring buffers for the Retail Centres
 * Knowing how to derive drive-time catchments for Retail Centres using the HERE API.
 
